@@ -1,6 +1,18 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
-import { User, LoginResponse } from "@workspace/api-client-react.schemas";
+import { setAuthTokenGetter } from "@workspace/api-client-react";
 import { useLocation } from "wouter";
+
+interface User {
+  id: number;
+  username: string;
+  role: "admin" | "user";
+  createdAt: string;
+}
+
+interface LoginResponse {
+  token: string;
+  user: User;
+}
 
 interface AuthContextType {
   token: string | null;
@@ -13,26 +25,14 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
+setAuthTokenGetter(() => localStorage.getItem("rk_token"));
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(() => localStorage.getItem("rk_token"));
   const [user, setUser] = useState<User | null>(null);
   const [, setLocation] = useLocation();
 
   useEffect(() => {
-    // Interceptor setup
-    const originalFetch = window.fetch;
-    window.fetch = function(input, init) {
-      const currentToken = localStorage.getItem("rk_token");
-      if (currentToken && typeof input === "string" && input.includes("/api/")) {
-        init = init || {};
-        init.headers = { 
-          ...(init.headers as Record<string, string> || {}), 
-          "Authorization": `Bearer ${currentToken}` 
-        };
-      }
-      return originalFetch(input, init);
-    };
-
     if (token) {
       try {
         const payload = JSON.parse(atob(token.split('.')[1]));

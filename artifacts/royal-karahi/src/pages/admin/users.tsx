@@ -5,7 +5,6 @@ import {
   useDeleteUser, 
   getListUsersQueryKey 
 } from "@workspace/api-client-react";
-import { CreateUserRequestRole } from "@workspace/api-client-react.schemas";
 import { useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -26,7 +25,7 @@ export default function Users() {
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState<CreateUserRequestRole>("user");
+  const [role, setRole] = useState<"admin" | "user">("user");
 
   const handleCreateUser = (e: React.FormEvent) => {
     e.preventDefault();
@@ -93,7 +92,7 @@ export default function Users() {
               
               <div className="space-y-2">
                 <Label htmlFor="role">Role</Label>
-                <Select value={role} onValueChange={(v: CreateUserRequestRole) => setRole(v)} disabled={createUserMutation.isPending}>
+                <Select value={role} onValueChange={(v: "admin" | "user") => setRole(v)} disabled={createUserMutation.isPending}>
                   <SelectTrigger id="role">
                     <SelectValue placeholder="Select role" />
                   </SelectTrigger>
