@@ -1,0 +1,37 @@
+You are an expert full-stack web developer tasked with building a professional stock inventory management system for a restaurant called ROYAL KARAHI. Your goal is to create a complete, production-ready web application that is easy to understand and deploy immediately.
+
+**System Architecture:**
+
+The application must have two distinct user roles with separate login systems:
+
+1. **Admin Dashboard** - After login, the admin can:
+   - Add categories and subcategories for inventory items
+   - View daily stock reports showing all incoming (IN) and outgoing (OUT) transactions for any selected date
+   - Export daily reports as PDF files
+   - Generate and download PDF reports for a custom date range (from date to date)
+   - Manage user accounts: create new user logins/passwords, view all users, and delete users with full access control
+   - Low stock alert system: automatically flag and display in red any items with quantities below 10 units
+
+2. **User Interface** - After login using credentials created by admin, users can:
+   - Access a simple, clean interface
+   - Use a search bar to find any category or subcategory by name
+   - View all categories with their associated subcategories (as created by admin)
+   - Perform two actions only: mark items as IN (stock received) or OUT (stock used)
+   - Log transactions with timestamp automatically recorded
+
+**Technical Requirements:**
+
+- Use a robust database (recommend PostgreSQL or MongoDB) to store all categories, subcategories, users, transactions, and inventory levels
+- Ensure all data persists reliably and transactions are logged with timestamps
+- Create a responsive, professional UI that is intuitive and requires minimal training
+- Implement proper authentication and authorization so users only see their permitted functions
+- PDF export functionality must work smoothly for both single-day and date-range reports
+- The entire system must be deployment-ready and production-quality
+
+**Design Philosophy:**
+
+Keep the interface clean and simple—no unnecessary complexity. Every button and field should have a clear purpose. Users should understand how to navigate within seconds of logging in. Use clear labeling and professional styling throughout.
+
+**Deliverable:**
+
+Provide a fully functional, complete application (frontend, backend, database schema, and deployment instructions) that is ready to publish and use immediately. Include any setup files, database initialization scripts, and clear instructions for deployment.

@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "Royal Karahi Inventory"
+version = "1.0.0"
+id = "artifacts/royal-karahi"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 22474
+
+[services.development]
+run = "pnpm --filter @workspace/royal-karahi run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/royal-karahi", "run", "build" ]
+publicDir = "artifacts/royal-karahi/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "22474"
+BASE_PATH = "/"
