@@ -63,7 +63,7 @@ export default function Login() {
             </div>
             {loginMutation.isError && (
               <div className="text-sm text-destructive font-medium bg-destructive/10 p-3 rounded-md">
-                {loginMutation.error?.error || "Login failed. Please check your credentials."}
+                {(loginMutation.error?.data as { error?: string } | null)?.error || "Login failed. Please check your credentials."}
               </div>
             )}
             <Button 

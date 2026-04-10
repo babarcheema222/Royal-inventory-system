@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useGetDailyReport, useGetRangeReport } from "@workspace/api-client-react";
+import { useGetDailyReport, useGetRangeReport, getGetDailyReportQueryKey, getGetRangeReportQueryKey } from "@workspace/api-client-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,8 +17,11 @@ export default function Reports() {
   const [rangeFrom, setRangeFrom] = useState(today);
   const [rangeTo, setRangeTo] = useState(today);
 
-  const { data: dailyReport, isLoading: loadingDaily } = useGetDailyReport({ date: dailyDate }, { query: { enabled: reportType === "daily" && !!dailyDate } });
-  const { data: rangeReport, isLoading: loadingRange } = useGetRangeReport({ from: rangeFrom, to: rangeTo }, { query: { enabled: reportType === "range" && !!rangeFrom && !!rangeTo } });
+  const dailyParams = { date: dailyDate };
+  const rangeParams = { from: rangeFrom, to: rangeTo };
+
+  const { data: dailyReport, isLoading: loadingDaily } = useGetDailyReport(dailyParams, { query: { queryKey: getGetDailyReportQueryKey(dailyParams), enabled: reportType === "daily" && !!dailyDate } });
+  const { data: rangeReport, isLoading: loadingRange } = useGetRangeReport(rangeParams, { query: { queryKey: getGetRangeReportQueryKey(rangeParams), enabled: reportType === "range" && !!rangeFrom && !!rangeTo } });
 
   const activeReport = reportType === "daily" ? dailyReport : rangeReport;
   const isLoading = reportType === "daily" ? loadingDaily : loadingRange;
