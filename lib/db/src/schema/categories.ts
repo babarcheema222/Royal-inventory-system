@@ -1,10 +1,11 @@
-import { pgTable, text, serial, integer, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, timestamp, doublePrecision } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 
 export const categoriesTable = pgTable("categories", {
   id: serial("id").primaryKey(),
   name: text("name").notNull().unique(),
+  unit: text("unit").notNull().default("Kg"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
@@ -12,7 +13,7 @@ export const subcategoriesTable = pgTable("subcategories", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   categoryId: integer("category_id").notNull().references(() => categoriesTable.id, { onDelete: "cascade" }),
-  currentStock: integer("current_stock").notNull().default(0),
+  currentStock: doublePrecision("current_stock").notNull().default(0),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 

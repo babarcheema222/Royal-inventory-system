@@ -60,6 +60,7 @@ router.get("/transactions/recent", requireAuth, async (_req, res): Promise<void>
       subcategoryId: transactionsTable.subcategoryId,
       subcategoryName: subcategoriesTable.name,
       categoryName: categoriesTable.name,
+      unit: categoriesTable.unit,
       type: transactionsTable.type,
       quantity: transactionsTable.quantity,
       notes: transactionsTable.notes,

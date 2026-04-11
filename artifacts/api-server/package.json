@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "set NODE_ENV=development && set PORT=3000 && pnpm run build && pnpm run start",
     "build": "node ./build.mjs",
-    "start": "node --enable-source-maps ./dist/index.mjs",
+    "start": "node --enable-source-maps --env-file=../../.env ./dist/index.mjs",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
@@ -15,6 +15,7 @@
     "bcryptjs": "^3.0.3",
     "cookie-parser": "^1.4.7",
     "cors": "^2",
+    "dotenv": "^17.4.1",
     "drizzle-orm": "catalog:",
     "express": "^5",
     "jsonwebtoken": "^9.0.3",

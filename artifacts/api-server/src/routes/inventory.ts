@@ -15,6 +15,7 @@ router.get("/inventory", requireAuth, async (req, res): Promise<void> => {
       name: subcategoriesTable.name,
       categoryId: subcategoriesTable.categoryId,
       categoryName: categoriesTable.name,
+      unit: categoriesTable.unit,
       currentStock: subcategoriesTable.currentStock,
       createdAt: subcategoriesTable.createdAt,
     })
@@ -47,6 +48,7 @@ router.get("/inventory/low-stock", requireAuth, async (_req, res): Promise<void>
       name: subcategoriesTable.name,
       categoryId: subcategoriesTable.categoryId,
       categoryName: categoriesTable.name,
+      unit: categoriesTable.unit,
       currentStock: subcategoriesTable.currentStock,
       createdAt: subcategoriesTable.createdAt,
     })

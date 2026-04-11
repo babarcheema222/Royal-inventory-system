@@ -48,6 +48,7 @@ export const GetMeResponse = zod.object({
 export const ListCategoriesResponseItem = zod.object({
   id: zod.number(),
   name: zod.string(),
+  unit: zod.string(),
   subcategories: zod.array(
     zod.object({
       id: zod.number(),
@@ -66,6 +67,7 @@ export const ListCategoriesResponse = zod.array(ListCategoriesResponseItem);
  */
 export const CreateCategoryBody = zod.object({
   name: zod.string(),
+  unit: zod.string(),
 });
 
 /**
@@ -102,6 +104,7 @@ export const ListInventoryResponseItem = zod.object({
   name: zod.string(),
   categoryId: zod.number(),
   categoryName: zod.string(),
+  unit: zod.string(),
   currentStock: zod.number(),
   isLowStock: zod.boolean(),
   createdAt: zod.coerce.date(),
@@ -116,6 +119,7 @@ export const GetLowStockItemsResponseItem = zod.object({
   name: zod.string(),
   categoryId: zod.number(),
   categoryName: zod.string(),
+  unit: zod.string(),
   currentStock: zod.number(),
   isLowStock: zod.boolean(),
   createdAt: zod.coerce.date(),
@@ -150,6 +154,7 @@ export const GetRecentTransactionsResponseItem = zod.object({
   subcategoryId: zod.number(),
   subcategoryName: zod.string(),
   categoryName: zod.string(),
+  unit: zod.string(),
   type: zod.enum(["IN", "OUT"]),
   quantity: zod.number(),
   notes: zod.string().nullish(),
@@ -176,6 +181,7 @@ export const GetDailyReportResponse = zod.object({
       subcategoryId: zod.number(),
       subcategoryName: zod.string(),
       categoryName: zod.string(),
+      unit: zod.string(),
       type: zod.enum(["IN", "OUT"]),
       quantity: zod.number(),
       notes: zod.string().nullish(),
@@ -208,6 +214,7 @@ export const GetRangeReportResponse = zod.object({
       subcategoryId: zod.number(),
       subcategoryName: zod.string(),
       categoryName: zod.string(),
+      unit: zod.string(),
       type: zod.enum(["IN", "OUT"]),
       quantity: zod.number(),
       notes: zod.string().nullish(),

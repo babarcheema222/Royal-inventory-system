@@ -62,12 +62,14 @@ export interface Subcategory {
 export interface Category {
   id: number;
   name: string;
+  unit: string;
   subcategories: Subcategory[];
   createdAt: string;
 }
 
 export interface CreateCategoryRequest {
   name: string;
+  unit: string;
 }
 
 export interface CreateSubcategoryRequest {
@@ -80,6 +82,7 @@ export interface InventoryItem {
   name: string;
   categoryId: number;
   categoryName: string;
+  unit: string;
   currentStock: number;
   isLowStock: boolean;
   createdAt: string;
@@ -140,6 +143,7 @@ export interface TransactionDetail {
   subcategoryId: number;
   subcategoryName: string;
   categoryName: string;
+  unit: string;
   type: TransactionDetailType;
   quantity: number;
   /** @nullable */

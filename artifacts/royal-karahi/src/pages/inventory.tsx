@@ -13,9 +13,9 @@ import { Badge } from "@/components/ui/badge";
 export default function Inventory() {
   const [search, setSearch] = useState("");
   const { data: items, isLoading } = useListInventory({ search });
-  const [txDialog, setTxDialog] = useState<{ isOpen: boolean; subcategoryId: number; name: string; type: "IN" | "OUT" } | null>(null);
+  const [txDialog, setTxDialog] = useState<{ isOpen: boolean; subcategoryId: number; name: string; type: "IN" | "OUT"; unit: string } | null>(null);
   
-  const [quantity, setQuantity] = useState("1");
+  const [quantity, setQuantity] = useState("");
   const [notes, setNotes] = useState("");
   
   const createTxMutation = useCreateTransaction();
@@ -38,7 +38,7 @@ export default function Inventory() {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getListInventoryQueryKey() });
           setTxDialog(null);
-          setQuantity("1");
+          setQuantity("");
           setNotes("");
         }
       }
@@ -74,36 +74,39 @@ export default function Inventory() {
       ) : items && items.length > 0 ? (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {items.map(item => (
-            <Card key={item.id} className={`shadow-sm overflow-hidden transition-colors ${item.isLowStock ? 'border-destructive/50 bg-destructive/5' : ''}`}>
-              <CardContent className="p-0">
-                <div className="p-5 flex flex-col h-full">
-                  <div className="flex justify-between items-start mb-4">
-                    <div>
-                      <h3 className="font-bold text-lg leading-tight flex items-center gap-2">
+            <Card key={item.id} className={`shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden border-none bg-gradient-to-br from-card to-muted/10 items-stretch flex flex-col ${item.isLowStock ? 'ring-2 ring-destructive/30' : ''}`}>
+              <CardContent className="p-0 flex-1 flex flex-col">
+                <div className="p-6 flex flex-col h-full">
+                  <div className="flex justify-between items-start mb-6">
+                    <div className="space-y-1">
+                      <h3 className="font-serif font-bold text-xl leading-tight flex items-center gap-2 text-foreground">
                         {item.name}
-                        {item.isLowStock && <AlertCircle className="h-4 w-4 text-destructive" />}
+                        {item.isLowStock && <AlertCircle className="h-5 w-5 text-destructive animate-pulse" />}
                       </h3>
-                      <p className="text-sm text-muted-foreground">{item.categoryName}</p>
+                      <p className="text-xs font-semibold text-primary uppercase tracking-wider">{item.categoryName} ({item.unit})</p>
                     </div>
-                    <Badge variant={item.isLowStock ? "destructive" : "outline"} className="font-mono text-base px-2 py-1">
-                      {item.currentStock}
-                    </Badge>
+                    <div className="flex flex-col items-end gap-1">
+                      <Badge variant={item.isLowStock ? "destructive" : "secondary"} className="font-mono text-lg px-3 py-1 shadow-sm">
+                        {item.currentStock} {item.unit}
+                      </Badge>
+                      <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-tighter">Current Count</span>
+                    </div>
                   </div>
                   
-                  <div className="mt-auto grid grid-cols-2 gap-2 pt-4 border-t">
+                  <div className="mt-auto grid grid-cols-2 gap-3 pt-6 border-t border-primary/5">
                     <Button 
                       variant="outline" 
-                      className="w-full text-destructive hover:text-destructive hover:bg-destructive/10"
-                      onClick={() => setTxDialog({ isOpen: true, subcategoryId: item.id, name: item.name, type: "OUT" })}
+                      className="w-full border-destructive/20 text-destructive hover:bg-destructive hover:text-destructive-foreground transition-all font-bold"
+                      onClick={() => setTxDialog({ isOpen: true, subcategoryId: item.id, name: item.name, type: "OUT", unit: item.unit })}
                     >
-                      <Minus className="mr-2 h-4 w-4" /> Use Stock
+                      <Minus className="mr-2 h-4 w-4" /> Usage
                     </Button>
                     <Button 
                       variant="default" 
-                      className="w-full"
-                      onClick={() => setTxDialog({ isOpen: true, subcategoryId: item.id, name: item.name, type: "IN" })}
+                      className="w-full bg-primary hover:bg-primary/90 shadow-sm font-bold"
+                      onClick={() => setTxDialog({ isOpen: true, subcategoryId: item.id, name: item.name, type: "IN", unit: item.unit })}
                     >
-                      <Plus className="mr-2 h-4 w-4" /> Add Stock
+                      <Plus className="mr-2 h-4 w-4" /> Restock
                     </Button>
                   </div>
                 </div>
@@ -131,12 +134,13 @@ export default function Inventory() {
             
             <div className="grid gap-4 py-6">
               <div className="space-y-2">
-                <Label htmlFor="quantity">Quantity</Label>
+                <Label htmlFor="quantity">Quantity ({txDialog?.unit})</Label>
                 <Input
                   id="quantity"
                   type="number"
-                  min="1"
-                  step="1"
+                  min="0.01"
+                  step="any"
+                  placeholder="0"
                   required
                   value={quantity}
                   onChange={(e) => setQuantity(e.target.value)}

@@ -16,6 +16,7 @@ async function fetchTransactions(from: Date, to: Date) {
       subcategoryId: transactionsTable.subcategoryId,
       subcategoryName: subcategoriesTable.name,
       categoryName: categoriesTable.name,
+      unit: categoriesTable.unit,
       type: transactionsTable.type,
       quantity: transactionsTable.quantity,
       notes: transactionsTable.notes,
@@ -48,8 +49,8 @@ router.get("/reports/daily", requireAdmin, async (req, res): Promise<void> => {
 
   const transactions = await fetchTransactions(from, to);
 
-  const totalIn = transactions.filter((t) => t.type === "IN").reduce((s, t) => s + t.quantity, 0);
-  const totalOut = transactions.filter((t) => t.type === "OUT").reduce((s, t) => s + t.quantity, 0);
+  const totalIn = transactions.filter((t) => t.type === "IN").length;
+  const totalOut = transactions.filter((t) => t.type === "OUT").length;
 
   res.json({
     date: dateStr,
@@ -72,12 +73,14 @@ router.get("/reports/range", requireAdmin, async (req, res): Promise<void> => {
   const fromStr = queryParams.data.from as string;
   const toStr = queryParams.data.to as string;
   const from = new Date(fromStr);
+  from.setHours(0, 0, 0, 0);
   const to = new Date(toStr);
+  to.setHours(23, 59, 59, 999);
 
   const transactions = await fetchTransactions(from, to);
 
-  const totalIn = transactions.filter((t) => t.type === "IN").reduce((s, t) => s + t.quantity, 0);
-  const totalOut = transactions.filter((t) => t.type === "OUT").reduce((s, t) => s + t.quantity, 0);
+  const totalIn = transactions.filter((t) => t.type === "IN").length;
+  const totalOut = transactions.filter((t) => t.type === "OUT").length;
 
   res.json({
     from: fromStr,

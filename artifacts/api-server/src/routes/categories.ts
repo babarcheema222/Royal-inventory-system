@@ -25,7 +25,10 @@ router.post("/categories", requireAdmin, async (req, res): Promise<void> => {
     return;
   }
 
-  const [category] = await db.insert(categoriesTable).values({ name: parsed.data.name }).returning();
+  const [category] = await db.insert(categoriesTable).values({ 
+    name: parsed.data.name,
+    unit: parsed.data.unit 
+  }).returning();
   res.status(201).json({ ...category, subcategories: [] });
 });
 
