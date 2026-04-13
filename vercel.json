@@ -1,0 +1,12 @@
+{
+  "buildCommand": "pnpm --filter @workspace/royal-karahi run build",
+  "outputDirectory": "artifacts/royal-karahi/dist/public",
+  "installCommand": "pnpm install",
+  "framework": null,
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
