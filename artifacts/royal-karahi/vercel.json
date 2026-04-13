@@ -1,6 +1,6 @@
 {
   "buildCommand": "cd ../.. && pnpm --filter @workspace/royal-karahi run build",
-  "outputDirectory": "artifacts/royal-karahi/dist/public",
+  "outputDirectory": "/dist/public",
   "installCommand": "cd ../.. && pnpm install",
   "framework": null,
   "rewrites": [
