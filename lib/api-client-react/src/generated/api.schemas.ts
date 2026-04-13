@@ -30,6 +30,8 @@ export interface User {
   username: string;
   role: UserRole;
   createdAt: string;
+  /** @nullable */
+  email?: string | null;
 }
 
 export interface LoginResponse {
@@ -49,6 +51,8 @@ export interface CreateUserRequest {
   username: string;
   password: string;
   role: CreateUserRequestRole;
+  /** @nullable */
+  email?: string | null;
 }
 
 export interface Subcategory {
@@ -57,14 +61,16 @@ export interface Subcategory {
   categoryId: number;
   currentStock: number;
   createdAt: string;
+  lowStockThreshold: number;
+  costPerUnit: number;
 }
 
 export interface Category {
   id: number;
   name: string;
-  unit: string;
   subcategories: Subcategory[];
   createdAt: string;
+  unit: string;
 }
 
 export interface CreateCategoryRequest {
@@ -86,6 +92,8 @@ export interface InventoryItem {
   currentStock: number;
   isLowStock: boolean;
   createdAt: string;
+  lowStockThreshold?: number;
+  costPerUnit?: number;
 }
 
 export interface InventorySummary {
@@ -109,6 +117,8 @@ export interface CreateTransactionRequest {
   quantity: number;
   /** @nullable */
   notes?: string | null;
+  /** @nullable */
+  supplierId?: number | null;
 }
 
 export type TransactionType =
@@ -128,6 +138,8 @@ export interface Transaction {
   notes?: string | null;
   userId: number;
   createdAt: string;
+  /** @nullable */
+  supplierId?: number | null;
 }
 
 export type TransactionDetailType =
@@ -143,7 +155,6 @@ export interface TransactionDetail {
   subcategoryId: number;
   subcategoryName: string;
   categoryName: string;
-  unit: string;
   type: TransactionDetailType;
   quantity: number;
   /** @nullable */
@@ -151,6 +162,11 @@ export interface TransactionDetail {
   userId: number;
   username: string;
   createdAt: string;
+  /** @nullable */
+  supplierId?: number | null;
+  /** @nullable */
+  supplierName?: string | null;
+  unit: string;
 }
 
 export interface ReportSummary {
@@ -170,6 +186,50 @@ export interface RangeReport {
   to: string;
   transactions: TransactionDetail[];
   summary: ReportSummary;
+}
+
+export interface Supplier {
+  id: number;
+  name: string;
+  /** @nullable */
+  contactInfo?: string | null;
+  createdAt: string;
+}
+
+export interface CreateSupplierRequest {
+  name: string;
+  /** @nullable */
+  contactInfo?: string | null;
+}
+
+export interface MenuItem {
+  id: number;
+  name: string;
+  price: number;
+  createdAt: string;
+}
+
+export type UpdateUserRequestRole =
+  (typeof UpdateUserRequestRole)[keyof typeof UpdateUserRequestRole];
+
+export const UpdateUserRequestRole = {
+  admin: "admin",
+  user: "user",
+} as const;
+
+export interface UpdateUserRequest {
+  /** @nullable */
+  email?: string | null;
+  /** @nullable */
+  password?: string | null;
+  role?: UpdateUserRequestRole;
+}
+
+export interface UpdateProfileRequest {
+  /** @nullable */
+  email?: string | null;
+  /** @nullable */
+  password?: string | null;
 }
 
 export type ListInventoryParams = {

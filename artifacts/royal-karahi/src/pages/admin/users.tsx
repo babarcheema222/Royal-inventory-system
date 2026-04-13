@@ -2,7 +2,8 @@ import { useState } from "react";
 import { 
   useListUsers, 
   useCreateUser, 
-  useDeleteUser, 
+  useDeleteUser,
+  useUpdateUser,
   getListUsersQueryKey 
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -11,8 +12,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Trash2, UserPlus, Shield, User } from "lucide-react";
+import { Trash2, UserPlus, Shield, User, Edit } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 
@@ -22,20 +24,28 @@ export default function Users() {
   
   const createUserMutation = useCreateUser();
   const deleteUserMutation = useDeleteUser();
+  const updateUserMutation = useUpdateUser();
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [email, setEmail] = useState("");
   const [role, setRole] = useState<"admin" | "user">("user");
+
+  const [editDialog, setEditDialog] = useState<{ isOpen: boolean; id: number; username: string; email: string; role: "admin" | "user" } | null>(null);
+  const [editPassword, setEditPassword] = useState("");
+  const [editEmail, setEditEmail] = useState("");
+  const [editRole, setEditRole] = useState<"admin" | "user">("user");
 
   const handleCreateUser = (e: React.FormEvent) => {
     e.preventDefault();
     createUserMutation.mutate(
-      { data: { username, password, role } },
+      { data: { username, password, role, email: email || undefined } },
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getListUsersQueryKey() });
           setUsername("");
           setPassword("");
+          setEmail("");
           setRole("user");
         }
       }
@@ -48,6 +58,31 @@ export default function Users() {
         onSuccess: () => queryClient.invalidateQueries({ queryKey: getListUsersQueryKey() })
       });
     }
+  };
+
+  const openEditDialog = (u: NonNullable<typeof users>[0]) => {
+    setEditDialog({ isOpen: true, id: u.id, username: u.username, email: u.email || "", role: u.role });
+    setEditEmail(u.email || "");
+    setEditPassword("");
+    setEditRole(u.role);
+  };
+
+  const handleUpdateUser = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editDialog) return;
+    updateUserMutation.mutate({
+      id: editDialog.id,
+      data: {
+        email: editEmail || undefined,
+        password: editPassword || undefined,
+        role: editRole,
+      }
+    }, {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: getListUsersQueryKey() });
+        setEditDialog(null);
+      }
+    });
   };
 
   return (
@@ -75,6 +110,18 @@ export default function Users() {
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   disabled={createUserMutation.isPending}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input 
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  disabled={createUserMutation.isPending}
+                  placeholder="Optional"
                 />
               </div>
               
@@ -125,6 +172,7 @@ export default function Users() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Username</TableHead>
+                  <TableHead>Email</TableHead>
                   <TableHead>Role</TableHead>
                   <TableHead>Created</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
@@ -143,6 +191,7 @@ export default function Users() {
                   users?.map((user) => (
                     <TableRow key={user.id}>
                       <TableCell className="font-medium">{user.username}</TableCell>
+                      <TableCell className="text-muted-foreground">{user.email || "—"}</TableCell>
                       <TableCell>
                         <Badge variant={user.role === 'admin' ? 'default' : 'secondary'} className="gap-1">
                           {user.role === 'admin' ? <Shield className="h-3 w-3" /> : <User className="h-3 w-3" />}
@@ -152,7 +201,15 @@ export default function Users() {
                       <TableCell className="text-muted-foreground text-sm">
                         {format(new Date(user.createdAt), "MMM d, yyyy")}
                       </TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className="text-right space-x-2">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => openEditDialog(user)}
+                          title="Edit User"
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
                         <Button
                           variant="ghost"
                           size="icon"
@@ -171,6 +228,53 @@ export default function Users() {
           </CardContent>
         </Card>
       </div>
+
+      <Dialog open={!!editDialog} onOpenChange={(open) => !open && setEditDialog(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit User: {editDialog?.username}</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleUpdateUser} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit-email">Email</Label>
+              <Input 
+                id="edit-email"
+                type="email"
+                value={editEmail}
+                onChange={(e) => setEditEmail(e.target.value)}
+                disabled={updateUserMutation.isPending}
+                placeholder="Optional"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-password">New Password (leave blank to keep current)</Label>
+              <Input 
+                id="edit-password"
+                type="password"
+                value={editPassword}
+                onChange={(e) => setEditPassword(e.target.value)}
+                disabled={updateUserMutation.isPending}
+                placeholder="********"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-role">Role</Label>
+              <Select value={editRole} onValueChange={(v: "admin" | "user") => setEditRole(v)} disabled={updateUserMutation.isPending}>
+                <SelectTrigger id="edit-role">
+                  <SelectValue placeholder="Select role" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="user">Staff (Inventory only)</SelectItem>
+                  <SelectItem value="admin">Admin (Full Access)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <Button type="submit" className="w-full" disabled={updateUserMutation.isPending}>
+              {updateUserMutation.isPending ? "Updating..." : "Save Changes"}
+            </Button>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

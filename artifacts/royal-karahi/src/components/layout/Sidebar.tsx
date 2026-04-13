@@ -1,11 +1,13 @@
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/lib/auth";
-import { LayoutDashboard, Package, ListTree, FileText, Users, LogOut } from "lucide-react";
+import { LayoutDashboard, Package, ListTree, FileText, Users, LogOut, Moon, Sun, UserCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTheme } from "next-themes";
 
 export function Sidebar() {
   const [location] = useLocation();
   const { logout, isAdmin } = useAuth();
+  const { theme, setTheme } = useTheme();
 
   const adminLinks = [
     { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -13,6 +15,7 @@ export function Sidebar() {
     { href: "/admin/categories", label: "Categories", icon: ListTree },
     { href: "/admin/reports", label: "Reports", icon: FileText },
     { href: "/admin/users", label: "Users", icon: Users },
+    { href: "/profile", label: "Profile", icon: UserCircle },
   ];
 
   if (!isAdmin) return null;
@@ -43,7 +46,15 @@ export function Sidebar() {
           );
         })}
       </nav>
-      <div className="p-4 border-t border-sidebar-border">
+      <div className="p-4 border-t border-sidebar-border space-y-2">
+        <button
+          onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+          className="flex w-full items-center gap-3 px-3 py-2 rounded-md text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors cursor-pointer text-sm font-medium"
+        >
+          {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+          Toggle Theme
+        </button>
+
         <button
           onClick={logout}
           className="flex w-full items-center gap-3 px-3 py-2 rounded-md text-sidebar-foreground hover:bg-destructive hover:text-destructive-foreground transition-colors cursor-pointer text-sm font-medium"
@@ -55,3 +66,4 @@ export function Sidebar() {
     </aside>
   );
 }
+

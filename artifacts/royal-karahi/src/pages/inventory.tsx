@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useListInventory, useCreateTransaction, getListInventoryQueryKey } from "@workspace/api-client-react";
+import { useListInventory, useCreateTransaction, getListInventoryQueryKey, useListSuppliers } from "@workspace/api-client-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -13,26 +13,29 @@ import { Badge } from "@/components/ui/badge";
 export default function Inventory() {
   const [search, setSearch] = useState("");
   const { data: items, isLoading } = useListInventory({ search });
+  const { data: suppliers } = useListSuppliers();
   const [txDialog, setTxDialog] = useState<{ isOpen: boolean; subcategoryId: number; name: string; type: "IN" | "OUT"; unit: string } | null>(null);
-  
+
   const [quantity, setQuantity] = useState("");
   const [notes, setNotes] = useState("");
-  
+  const [supplierId, setSupplierId] = useState<string>("");
+
   const createTxMutation = useCreateTransaction();
   const queryClient = useQueryClient();
 
   const handleTransaction = (e: React.FormEvent) => {
     e.preventDefault();
     if (!txDialog) return;
-    
+
     createTxMutation.mutate(
-      { 
-        data: { 
-          subcategoryId: txDialog.subcategoryId, 
-          type: txDialog.type, 
+      {
+        data: {
+          subcategoryId: txDialog.subcategoryId,
+          type: txDialog.type,
           quantity: Number(quantity),
-          notes: notes.trim() || undefined
-        } 
+          notes: notes.trim() || undefined,
+          supplierId: txDialog.type === "IN" && supplierId ? Number(supplierId) : undefined
+        }
       },
       {
         onSuccess: () => {
@@ -40,6 +43,7 @@ export default function Inventory() {
           setTxDialog(null);
           setQuantity("");
           setNotes("");
+          setSupplierId("");
         }
       }
     );
@@ -54,8 +58,8 @@ export default function Inventory() {
         </div>
         <div className="relative w-full sm:w-72">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input 
-            placeholder="Search items..." 
+          <Input
+            placeholder="Search items..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-9 h-11"
@@ -65,7 +69,7 @@ export default function Inventory() {
 
       {isLoading ? (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {[1,2,3,4,5,6].map(i => (
+          {[1, 2, 3, 4, 5, 6].map(i => (
             <Card key={i} className="animate-pulse">
               <CardContent className="h-32" />
             </Card>
@@ -92,17 +96,17 @@ export default function Inventory() {
                       <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-tighter">Current Count</span>
                     </div>
                   </div>
-                  
+
                   <div className="mt-auto grid grid-cols-2 gap-3 pt-6 border-t border-primary/5">
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      variant="outline"
                       className="w-full border-destructive/20 text-destructive hover:bg-destructive hover:text-destructive-foreground transition-all font-bold"
                       onClick={() => setTxDialog({ isOpen: true, subcategoryId: item.id, name: item.name, type: "OUT", unit: item.unit })}
                     >
                       <Minus className="mr-2 h-4 w-4" /> Usage
                     </Button>
-                    <Button 
-                      variant="default" 
+                    <Button
+                      variant="default"
                       className="w-full bg-primary hover:bg-primary/90 shadow-sm font-bold"
                       onClick={() => setTxDialog({ isOpen: true, subcategoryId: item.id, name: item.name, type: "IN", unit: item.unit })}
                     >
@@ -131,7 +135,7 @@ export default function Inventory() {
                 Record {txDialog?.type === "IN" ? "incoming delivery" : "kitchen usage"} for this item.
               </DialogDescription>
             </DialogHeader>
-            
+
             <div className="grid gap-4 py-6">
               <div className="space-y-2">
                 <Label htmlFor="quantity">Quantity ({txDialog?.unit})</Label>
@@ -147,11 +151,27 @@ export default function Inventory() {
                   autoFocus
                 />
               </div>
+              {txDialog?.type === "IN" && (
+                <div className="space-y-2">
+                  <Label htmlFor="supplier">Supplier</Label>
+                  <select
+                    id="supplier"
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    value={supplierId}
+                    onChange={(e) => setSupplierId(e.target.value)}
+                  >
+                    <option value="">Select Supplier (Optional)</option>
+                    {suppliers?.map(s => (
+                      <option key={s.id} value={s.id}>{s.name}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
               <div className="space-y-2">
                 <Label htmlFor="notes">Notes (Optional)</Label>
                 <Textarea
                   id="notes"
-                  placeholder="E.g., Supplier name, reason for usage..."
+                  placeholder="E.g., reason for usage..."
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                 />

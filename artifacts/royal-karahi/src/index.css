@@ -67,13 +67,13 @@
 }
 
 :root {
-  --button-outline: rgba(0,0,0, .10);
-  --badge-outline: rgba(0,0,0, .05);
+  --button-outline: rgba(0, 0, 0, .10);
+  --badge-outline: rgba(0, 0, 0, .05);
 
   --opaque-button-border-intensity: -8;
 
-  --elevate-1: rgba(0,0,0, .03);
-  --elevate-2: rgba(0,0,0, .08);
+  --elevate-1: rgba(0, 0, 0, .03);
+  --elevate-2: rgba(0, 0, 0, .08);
 
   /* Cream/off-white background */
   --background: 40 33% 98%;
@@ -118,7 +118,7 @@
 
   --input: 40 20% 88%;
   --ring: 350 50% 30%;
-  
+
   --chart-1: 350 50% 30%;
   --chart-2: 43 74% 49%;
   --chart-3: 160 60% 40%;
@@ -128,9 +128,9 @@
   --app-font-sans: "Inter", sans-serif;
   --app-font-serif: "Georgia", serif;
   --app-font-mono: "Menlo", monospace;
-  
+
   --radius: 0.25rem;
-  
+
   --shadow-2xs: 0px 2px 0px 0px hsl(0 0% 0% / 0.05);
   --shadow-xs: 0px 2px 0px 0px hsl(0 0% 0% / 0.05);
   --shadow-sm: 0px 2px 0px 0px hsl(0 0% 0% / 0.05), 0px 1px 2px -1px hsl(0 0% 0% / 0.05);
@@ -139,7 +139,7 @@
   --shadow-lg: 0px 2px 0px 0px hsl(0 0% 0% / 0.05), 0px 4px 6px -1px hsl(0 0% 0% / 0.05);
   --shadow-xl: 0px 2px 0px 0px hsl(0 0% 0% / 0.05), 0px 8px 10px -1px hsl(0 0% 0% / 0.05);
   --shadow-2xl: 0px 2px 0px 0px hsl(0 0% 0% / 0.05);
-  
+
   --tracking-normal: 0em;
   --spacing: 0.25rem;
 
@@ -153,7 +153,35 @@
 }
 
 .dark {
-  /* No dark mode needed */
+  --background: 350 40% 10%;
+  --foreground: 40 33% 98%;
+  --border: 350 30% 20%;
+  --card: 350 35% 14%;
+  --card-foreground: 40 33% 98%;
+  --card-border: 350 30% 20%;
+  --sidebar: 350 40% 8%;
+  --sidebar-foreground: 40 33% 98%;
+  --sidebar-border: 350 30% 20%;
+  --sidebar-primary: 43 74% 49%;
+  --sidebar-primary-foreground: 350 40% 10%;
+  --sidebar-accent: 350 35% 20%;
+  --sidebar-accent-foreground: 40 33% 98%;
+  --sidebar-ring: 43 74% 49%;
+  --popover: 350 35% 14%;
+  --popover-foreground: 40 33% 98%;
+  --popover-border: 350 30% 20%;
+  --primary: 350 50% 40%;
+  --primary-foreground: 40 33% 98%;
+  --secondary: 43 74% 49%;
+  --secondary-foreground: 350 40% 10%;
+  --muted: 350 35% 20%;
+  --muted-foreground: 40 20% 70%;
+  --accent: 350 35% 20%;
+  --accent-foreground: 40 33% 98%;
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 100%;
+  --input: 350 30% 20%;
+  --ring: 43 74% 49%;
 }
 
 @layer base {
@@ -170,6 +198,7 @@
   input[type="search"]::-webkit-search-cancel-button {
     @apply hidden;
   }
+
   [contenteditable][data-placeholder]:empty::before {
     content: attr(data-placeholder);
     color: hsl(var(--muted-foreground));
@@ -181,15 +210,19 @@
   body * {
     visibility: hidden;
   }
-  .print-area, .print-area * {
+
+  .print-area,
+  .print-area * {
     visibility: visible;
   }
+
   .print-area {
     position: absolute;
     left: 0;
     top: 0;
     width: 100%;
   }
+
   .no-print {
     display: none !important;
   }

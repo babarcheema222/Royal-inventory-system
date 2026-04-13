@@ -14,6 +14,8 @@ export const subcategoriesTable = pgTable("subcategories", {
   name: text("name").notNull(),
   categoryId: integer("category_id").notNull().references(() => categoriesTable.id, { onDelete: "cascade" }),
   currentStock: doublePrecision("current_stock").notNull().default(0),
+  lowStockThreshold: doublePrecision("low_stock_threshold").notNull().default(5.0),
+  costPerUnit: doublePrecision("cost_per_unit").notNull().default(0.0),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 

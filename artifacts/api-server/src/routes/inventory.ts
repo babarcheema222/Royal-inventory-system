@@ -17,6 +17,8 @@ router.get("/inventory", requireAuth, async (req, res): Promise<void> => {
       categoryName: categoriesTable.name,
       unit: categoriesTable.unit,
       currentStock: subcategoriesTable.currentStock,
+      lowStockThreshold: subcategoriesTable.lowStockThreshold,
+      costPerUnit: subcategoriesTable.costPerUnit,
       createdAt: subcategoriesTable.createdAt,
     })
     .from(subcategoriesTable)
@@ -35,7 +37,7 @@ router.get("/inventory", requireAuth, async (req, res): Promise<void> => {
 
   const result = filtered.map((item) => ({
     ...item,
-    isLowStock: item.currentStock < 10,
+    isLowStock: item.currentStock < item.lowStockThreshold,
   }));
 
   res.json(result);
@@ -50,11 +52,13 @@ router.get("/inventory/low-stock", requireAuth, async (_req, res): Promise<void>
       categoryName: categoriesTable.name,
       unit: categoriesTable.unit,
       currentStock: subcategoriesTable.currentStock,
+      lowStockThreshold: subcategoriesTable.lowStockThreshold,
+      costPerUnit: subcategoriesTable.costPerUnit,
       createdAt: subcategoriesTable.createdAt,
     })
     .from(subcategoriesTable)
     .innerJoin(categoriesTable, eq(subcategoriesTable.categoryId, categoriesTable.id))
-    .where(lt(subcategoriesTable.currentStock, 10))
+    .where(sql`${subcategoriesTable.currentStock} < ${subcategoriesTable.lowStockThreshold}`)
     .orderBy(subcategoriesTable.currentStock);
 
   const result = subs.map((item) => ({
@@ -73,7 +77,7 @@ router.get("/inventory/summary", requireAuth, async (_req, res): Promise<void> =
   const [lowStockRow] = await db
     .select({ count: sql<number>`count(*)::int` })
     .from(subcategoriesTable)
-    .where(lt(subcategoriesTable.currentStock, 10));
+    .where(sql`${subcategoriesTable.currentStock} < ${subcategoriesTable.lowStockThreshold}`);
 
   const [totalCategoriesRow] = await db
     .select({ count: sql<number>`count(*)::int` })

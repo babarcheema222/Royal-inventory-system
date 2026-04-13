@@ -13,7 +13,7 @@ router.post("/transactions", requireAuth, async (req, res): Promise<void> => {
     return;
   }
 
-  const { subcategoryId, type, quantity, notes } = parsed.data;
+  const { subcategoryId, type, quantity, notes, supplierId } = parsed.data;
 
   const [subcategory] = await db
     .select()
@@ -46,6 +46,7 @@ router.post("/transactions", requireAuth, async (req, res): Promise<void> => {
       type,
       quantity,
       notes: notes ?? null,
+      supplierId: supplierId ?? null,
       userId: req.user!.userId,
     })
     .returning();

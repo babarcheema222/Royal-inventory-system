@@ -11,6 +11,7 @@ export const transactionsTable = pgTable("transactions", {
   quantity: doublePrecision("quantity").notNull(),
   notes: text("notes"),
   userId: integer("user_id").notNull().references(() => usersTable.id, { onDelete: "cascade" }),
+  supplierId: integer("supplier_id"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 

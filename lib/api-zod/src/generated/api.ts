@@ -29,6 +29,7 @@ export const LoginResponse = zod.object({
     username: zod.string(),
     role: zod.enum(["admin", "user"]),
     createdAt: zod.coerce.date(),
+    email: zod.string().nullish(),
   }),
 });
 
@@ -40,6 +41,7 @@ export const GetMeResponse = zod.object({
   username: zod.string(),
   role: zod.enum(["admin", "user"]),
   createdAt: zod.coerce.date(),
+  email: zod.string().nullish(),
 });
 
 /**
@@ -48,7 +50,6 @@ export const GetMeResponse = zod.object({
 export const ListCategoriesResponseItem = zod.object({
   id: zod.number(),
   name: zod.string(),
-  unit: zod.string(),
   subcategories: zod.array(
     zod.object({
       id: zod.number(),
@@ -56,9 +57,12 @@ export const ListCategoriesResponseItem = zod.object({
       categoryId: zod.number(),
       currentStock: zod.number(),
       createdAt: zod.coerce.date(),
+      lowStockThreshold: zod.number(),
+      costPerUnit: zod.number(),
     }),
   ),
   createdAt: zod.coerce.date(),
+  unit: zod.string(),
 });
 export const ListCategoriesResponse = zod.array(ListCategoriesResponseItem);
 
@@ -108,6 +112,8 @@ export const ListInventoryResponseItem = zod.object({
   currentStock: zod.number(),
   isLowStock: zod.boolean(),
   createdAt: zod.coerce.date(),
+  lowStockThreshold: zod.number().optional(),
+  costPerUnit: zod.number().optional(),
 });
 export const ListInventoryResponse = zod.array(ListInventoryResponseItem);
 
@@ -123,6 +129,8 @@ export const GetLowStockItemsResponseItem = zod.object({
   currentStock: zod.number(),
   isLowStock: zod.boolean(),
   createdAt: zod.coerce.date(),
+  lowStockThreshold: zod.number().optional(),
+  costPerUnit: zod.number().optional(),
 });
 export const GetLowStockItemsResponse = zod.array(GetLowStockItemsResponseItem);
 
@@ -144,6 +152,7 @@ export const CreateTransactionBody = zod.object({
   type: zod.enum(["IN", "OUT"]),
   quantity: zod.number(),
   notes: zod.string().nullish(),
+  supplierId: zod.number().nullish(),
 });
 
 /**
@@ -154,13 +163,15 @@ export const GetRecentTransactionsResponseItem = zod.object({
   subcategoryId: zod.number(),
   subcategoryName: zod.string(),
   categoryName: zod.string(),
-  unit: zod.string(),
   type: zod.enum(["IN", "OUT"]),
   quantity: zod.number(),
   notes: zod.string().nullish(),
   userId: zod.number(),
   username: zod.string(),
   createdAt: zod.coerce.date(),
+  supplierId: zod.number().nullish(),
+  supplierName: zod.string().nullish(),
+  unit: zod.string(),
 });
 export const GetRecentTransactionsResponse = zod.array(
   GetRecentTransactionsResponseItem,
@@ -181,13 +192,15 @@ export const GetDailyReportResponse = zod.object({
       subcategoryId: zod.number(),
       subcategoryName: zod.string(),
       categoryName: zod.string(),
-      unit: zod.string(),
       type: zod.enum(["IN", "OUT"]),
       quantity: zod.number(),
       notes: zod.string().nullish(),
       userId: zod.number(),
       username: zod.string(),
       createdAt: zod.coerce.date(),
+      supplierId: zod.number().nullish(),
+      supplierName: zod.string().nullish(),
+      unit: zod.string(),
     }),
   ),
   summary: zod.object({
@@ -214,13 +227,15 @@ export const GetRangeReportResponse = zod.object({
       subcategoryId: zod.number(),
       subcategoryName: zod.string(),
       categoryName: zod.string(),
-      unit: zod.string(),
       type: zod.enum(["IN", "OUT"]),
       quantity: zod.number(),
       notes: zod.string().nullish(),
       userId: zod.number(),
       username: zod.string(),
       createdAt: zod.coerce.date(),
+      supplierId: zod.number().nullish(),
+      supplierName: zod.string().nullish(),
+      unit: zod.string(),
     }),
   ),
   summary: zod.object({
@@ -238,6 +253,7 @@ export const ListUsersResponseItem = zod.object({
   username: zod.string(),
   role: zod.enum(["admin", "user"]),
   createdAt: zod.coerce.date(),
+  email: zod.string().nullish(),
 });
 export const ListUsersResponse = zod.array(ListUsersResponseItem);
 
@@ -248,6 +264,7 @@ export const CreateUserBody = zod.object({
   username: zod.string(),
   password: zod.string(),
   role: zod.enum(["admin", "user"]),
+  email: zod.string().nullish(),
 });
 
 /**
@@ -255,4 +272,60 @@ export const CreateUserBody = zod.object({
  */
 export const DeleteUserParams = zod.object({
   id: zod.coerce.number(),
+});
+
+/**
+ * @summary Update a user (admin only)
+ */
+export const UpdateUserParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const UpdateUserBody = zod.object({
+  email: zod.string().nullish(),
+  password: zod.string().nullish(),
+  role: zod.enum(["admin", "user"]).optional(),
+});
+
+export const UpdateUserResponse = zod.object({
+  id: zod.number(),
+  username: zod.string(),
+  role: zod.enum(["admin", "user"]),
+  createdAt: zod.coerce.date(),
+  email: zod.string().nullish(),
+});
+
+/**
+ * @summary List all suppliers
+ */
+export const ListSuppliersResponseItem = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  contactInfo: zod.string().nullish(),
+  createdAt: zod.coerce.date(),
+});
+export const ListSuppliersResponse = zod.array(ListSuppliersResponseItem);
+
+/**
+ * @summary Create a supplier
+ */
+export const CreateSupplierBody = zod.object({
+  name: zod.string(),
+  contactInfo: zod.string().nullish(),
+});
+
+/**
+ * @summary Update current user profile
+ */
+export const UpdateProfileBody = zod.object({
+  email: zod.string().nullish(),
+  password: zod.string().nullish(),
+});
+
+export const UpdateProfileResponse = zod.object({
+  id: zod.number(),
+  username: zod.string(),
+  role: zod.enum(["admin", "user"]),
+  createdAt: zod.coerce.date(),
+  email: zod.string().nullish(),
 });
