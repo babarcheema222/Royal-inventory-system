@@ -18,11 +18,11 @@ router.post("/suppliers", requireAdmin, async (req, res): Promise<void> => {
     return;
   }
 
-  const [supplier] = await db.insert(suppliersTable).values({ 
+  const [supplier] = await db.insert(suppliersTable).values({
     name: parsed.data.name,
     contactInfo: parsed.data.contactInfo || null
   }).returning();
-  
+
   res.status(201).json(supplier);
 });
 

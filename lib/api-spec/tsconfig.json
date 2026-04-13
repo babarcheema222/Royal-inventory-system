@@ -2,10 +2,14 @@
   "compilerOptions": {
     "module": "esnext",
     "moduleResolution": "bundler",
-    "types": ["node"],
+    "types": [
+      "node"
+    ],
     "esModuleInterop": true,
     "skipLibCheck": true,
     "noEmit": true
   },
-  "include": ["orval.config.ts"]
+  "include": [
+    "orval.config.ts"
+  ]
 }

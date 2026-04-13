@@ -1,10 +1,10 @@
 import { useState } from "react";
-import { 
-  useListUsers, 
-  useCreateUser, 
+import {
+  useListUsers,
+  useCreateUser,
   useDeleteUser,
   useUpdateUser,
-  getListUsersQueryKey 
+  getListUsersQueryKey
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,7 +21,7 @@ import { format } from "date-fns";
 export default function Users() {
   const { data: users, isLoading } = useListUsers();
   const queryClient = useQueryClient();
-  
+
   const createUserMutation = useCreateUser();
   const deleteUserMutation = useDeleteUser();
   const updateUserMutation = useUpdateUser();
@@ -104,7 +104,7 @@ export default function Users() {
             <form onSubmit={handleCreateUser} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="username">Username</Label>
-                <Input 
+                <Input
                   id="username"
                   required
                   value={username}
@@ -115,7 +115,7 @@ export default function Users() {
 
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
-                <Input 
+                <Input
                   id="email"
                   type="email"
                   value={email}
@@ -124,10 +124,10 @@ export default function Users() {
                   placeholder="Optional"
                 />
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
-                <Input 
+                <Input
                   id="password"
                   type="password"
                   required
@@ -136,7 +136,7 @@ export default function Users() {
                   disabled={createUserMutation.isPending}
                 />
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="role">Role</Label>
                 <Select value={role} onValueChange={(v: "admin" | "user") => setRole(v)} disabled={createUserMutation.isPending}>
@@ -237,7 +237,7 @@ export default function Users() {
           <form onSubmit={handleUpdateUser} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="edit-email">Email</Label>
-              <Input 
+              <Input
                 id="edit-email"
                 type="email"
                 value={editEmail}
@@ -248,7 +248,7 @@ export default function Users() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="edit-password">New Password (leave blank to keep current)</Label>
-              <Input 
+              <Input
                 id="edit-password"
                 type="password"
                 value={editPassword}

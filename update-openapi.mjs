@@ -60,7 +60,7 @@ Object.assign(doc.components.schemas, {
     },
     required: ["id", "name", "price", "createdAt"]
   },
-// Add Recipe requirement logic...
+  // Add Recipe requirement logic...
 });
 
 // 6. Add tags
