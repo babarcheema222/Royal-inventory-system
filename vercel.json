@@ -1,7 +1,8 @@
 {
-  "buildCommand": "cd artifacts/royal-karahi && pnpm run build",
-  "outputDirectory": "artifacts/royal-karahi/dist/public",
-  "installCommand": "pnpm install",
+  "rootDirectory": "artifacts/royal-karahi",
+  "buildCommand": "pnpm run build",
+  "outputDirectory": "dist/public",
+  "installCommand": "cd ../.. && pnpm install",
   "framework": null,
   "rewrites": [
     {
