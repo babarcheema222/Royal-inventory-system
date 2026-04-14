@@ -117,36 +117,39 @@ export default function Reports() {
         currentY = (doc as any).lastAutoTable.finalY + 15;
       });
 
-    // Branding Footer
-    const pageCount = (doc as any).internal.getNumberOfPages();
-    for (let i = 1; i <= pageCount; i++) {
-      doc.setPage(i);
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(9);
-      const centerX = doc.internal.pageSize.width / 2;
-      const bottomY = doc.internal.pageSize.height - 10;
-      
-      const text1 = "(Designed and Manged by ";
-      const text2 = "BABAR CHEEMA";
-      const text3 = " )";
-      
-      const width1 = doc.getTextWidth(text1);
-      const width2 = doc.getTextWidth(text2);
-      const width3 = doc.getTextWidth(text3);
-      const totalWidth = width1 + width2 + width3;
-      
-      let startX = centerX - (totalWidth / 2);
-      doc.setTextColor(120, 120, 120);
-      doc.text(text1, startX, bottomY);
-      startX += width1;
-      doc.setTextColor(37, 99, 235);
-      doc.text(text2, startX, bottomY);
-      startX += width2;
-      doc.setTextColor(120, 120, 120);
-      doc.text(text3, startX, bottomY);
-    }
+    // Branding Footer - Only on the last page
+    const lastPage = (doc as any).internal.getNumberOfPages();
+    doc.setPage(lastPage);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9);
+    const centerX = doc.internal.pageSize.width / 2;
+    const bottomY = doc.internal.pageSize.height - 10;
+    
+    const text1 = "(Designed and Manged by ";
+    const text2 = "BABAR CHEEMA";
+    const text3 = " )";
+    
+    const width1 = doc.getTextWidth(text1);
+    const width2 = doc.getTextWidth(text2);
+    const width3 = doc.getTextWidth(text3);
+    const totalWidth = width1 + width2 + width3;
+    
+    let startX = centerX - (totalWidth / 2);
+    doc.setTextColor(120, 120, 120);
+    doc.text(text1, startX, bottomY);
+    startX += width1;
+    doc.setTextColor(0, 0, 0); // Bold Black
+    doc.text(text2, startX, bottomY);
+    startX += width2;
+    doc.setTextColor(120, 120, 120);
+    doc.text(text3, startX, bottomY);
 
-    doc.save(`inventory-report-${format(new Date(), "yyyy-MM-dd")}.pdf`);
+    const isTodayReport = dateRange.from === todayStr && dateRange.to === todayStr;
+    const fileName = isTodayReport 
+      ? `ROYAL-STOCK-REPORT-TODAY-${format(new Date(), "yyyy-MM-dd")}.pdf`
+      : `Report-from-${dateRange.from}-to-${dateRange.to}.pdf`;
+
+    doc.save(fileName);
   };
 
   const setToday = () => {

@@ -45,73 +45,108 @@ export default function Dashboard() {
     const { data: stockItems } = await fetchAllStock();
     if (!stockItems) return;
 
+    // Group by Category
+    const grouped = stockItems.reduce((acc, item) => {
+      const cat = item.categoryName || "Uncategorized";
+      if (!acc[cat]) acc[cat] = [];
+      acc[cat].push(item);
+      return acc;
+    }, {} as Record<string, typeof stockItems>);
+
     const doc = new jsPDF();
     const dateStr = format(new Date(), "PPP p");
 
-    // Header
+    // Header logic
     doc.setFontSize(22);
     doc.setTextColor(153, 27, 27); // Burgundy
     doc.text("ROYAL KARAHI", 14, 20);
 
     doc.setFontSize(16);
     doc.setTextColor(40, 40, 40);
-    doc.text("Remaining Stock Inventory Report", 14, 30);
+    doc.text("Current Stock Inventory Report", 14, 30);
 
     doc.setFontSize(10);
     doc.setTextColor(100, 100, 100);
     doc.text(`Generated on: ${dateStr}`, 14, 38);
 
-    // Table
-    const tableData = stockItems.map(item => [
-      item.name,
-      item.categoryName,
-      `${Number(item.currentStock).toFixed(2)} ${item.unit}`
-    ]);
+    let currentY = 50;
 
-    autoTable(doc, {
-      startY: 45,
-      head: [["Item Name", "Category", "Current Stock"]],
-      body: tableData,
-      headStyles: { fillColor: [153, 27, 27], fontStyle: 'bold' },
-      alternateRowStyles: { fillColor: [249, 249, 249] },
-      margin: { top: 45 },
-      styles: { fontSize: 10, cellPadding: 3 }
-    });
+    // Categories Loop
+    Object.entries(grouped)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .forEach(([category, items]) => {
+        // Page break check
+        if (currentY > 250) {
+          doc.addPage();
+          currentY = 20;
+        }
 
-    // Footer - Add to all pages
-    const pageCount = (doc as any).internal.getNumberOfPages();
-    for (let i = 1; i <= pageCount; i++) {
-      doc.setPage(i);
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(9);
+        // Highlighted Category Header
+        doc.setFillColor(153, 27, 27); // Burgundy
+        doc.rect(14, currentY, 182, 8, 'F');
+        doc.setFontSize(11);
+        doc.setTextColor(255, 255, 255);
+        doc.setFont("helvetica", "bold");
+        doc.text(category.toUpperCase(), 18, currentY + 6);
 
-      const centerX = doc.internal.pageSize.width / 2;
-      const bottomY = doc.internal.pageSize.height - 10;
+        currentY += 8;
 
-      const text1 = "(Designed and Manged by ";
-      const text2 = "BABAR CHEEMA";
-      const text3 = " )";
+        const tableData = items
+          .sort((a, b) => (a.name || "").localeCompare(b.name || ""))
+          .map(item => [
+            item.name,
+            `${Number(item.currentStock).toFixed(2)} ${item.unit}`
+          ]);
 
-      const width1 = doc.getTextWidth(text1);
-      const width2 = doc.getTextWidth(text2);
-      const width3 = doc.getTextWidth(text3);
-      const totalWidth = width1 + width2 + width3;
+        autoTable(doc, {
+          startY: currentY,
+          head: [["Item Name", "Current Stock (Remaining)"]],
+          body: tableData,
+          headStyles: { fillColor: [240, 240, 240], textColor: [40, 40, 40], fontStyle: 'bold' },
+          alternateRowStyles: { fillColor: [252, 252, 252] },
+          styles: { fontSize: 10, cellPadding: 3 },
+          margin: { left: 14, right: 14 },
+          didDrawPage: (data) => {
+             // currentY is updated by finalY below
+          }
+        });
 
-      let currentX = centerX - (totalWidth / 2);
+        currentY = (doc as any).lastAutoTable.finalY + 12;
+      });
 
-      doc.setTextColor(120, 120, 120);
-      doc.text(text1, currentX, bottomY);
-      currentX += width1;
+    // Footer - Only on the last page
+    const lastPage = (doc as any).internal.getNumberOfPages();
+    doc.setPage(lastPage);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9);
 
-      doc.setTextColor(37, 99, 235); // Professional Blue
-      doc.text(text2, currentX, bottomY);
-      currentX += width2;
+    const centerX = doc.internal.pageSize.width / 2;
+    const bottomY = doc.internal.pageSize.height - 10;
 
-      doc.setTextColor(120, 120, 120);
-      doc.text(text3, currentX, bottomY);
-    }
+    const text1 = "(Designed and Manged by ";
+    const text2 = "BABAR CHEEMA";
+    const text3 = " )";
 
-    doc.save(`remaining-stock-${format(new Date(), "yyyy-MM-dd")}.pdf`);
+    const width1 = doc.getTextWidth(text1);
+    const width2 = doc.getTextWidth(text2);
+    const width3 = doc.getTextWidth(text3);
+    const totalWidth = width1 + width2 + width3;
+
+    let currentX = centerX - (totalWidth / 2);
+
+    doc.setTextColor(120, 120, 120);
+    doc.text(text1, currentX, bottomY);
+    currentX += width1;
+
+    doc.setTextColor(0, 0, 0); // Bold Black
+    doc.text(text2, currentX, bottomY);
+    currentX += width2;
+
+    doc.setTextColor(120, 120, 120);
+    doc.text(text3, currentX, bottomY);
+
+    const dateFormatted = format(new Date(), "yyyy-MM-dd");
+    doc.save(`royal-karahi-remaining-stock-${dateFormatted}.pdf`);
   };
 
   const chartData = useMemo(() => {
@@ -174,40 +209,39 @@ export default function Dashboard() {
       styles: { fontSize: 10, cellPadding: 3 }
     });
 
-    // Footer - Add to all pages
-    const pageCount = (doc as any).internal.getNumberOfPages();
-    for (let i = 1; i <= pageCount; i++) {
-      doc.setPage(i);
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(9);
+    // Footer - Only on the last page
+    const lastPage = (doc as any).internal.getNumberOfPages();
+    doc.setPage(lastPage);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9);
 
-      const centerX = doc.internal.pageSize.width / 2;
-      const bottomY = doc.internal.pageSize.height - 10;
+    const centerX = doc.internal.pageSize.width / 2;
+    const bottomY = doc.internal.pageSize.height - 10;
 
-      const text1 = "(Designed and Manged by ";
-      const text2 = "BABAR CHEEMA";
-      const text3 = " )";
+    const text1 = "(Designed and Manged by ";
+    const text2 = "BABAR CHEEMA";
+    const text3 = " )";
 
-      const width1 = doc.getTextWidth(text1);
-      const width2 = doc.getTextWidth(text2);
-      const width3 = doc.getTextWidth(text3);
-      const totalWidth = width1 + width2 + width3;
+    const width1 = doc.getTextWidth(text1);
+    const width2 = doc.getTextWidth(text2);
+    const width3 = doc.getTextWidth(text3);
+    const totalWidth = width1 + width2 + width3;
 
-      let currentX = centerX - (totalWidth / 2);
+    let currentX = centerX - (totalWidth / 2);
 
-      doc.setTextColor(120, 120, 120);
-      doc.text(text1, currentX, bottomY);
-      currentX += width1;
+    doc.setTextColor(120, 120, 120);
+    doc.text(text1, currentX, bottomY);
+    currentX += width1;
 
-      doc.setTextColor(37, 99, 235); // Professional Blue
-      doc.text(text2, currentX, bottomY);
-      currentX += width2;
+    doc.setTextColor(0, 0, 0); // Bold Black
+    doc.text(text2, currentX, bottomY);
+    currentX += width2;
 
-      doc.setTextColor(120, 120, 120);
-      doc.text(text3, currentX, bottomY);
-    }
+    doc.setTextColor(120, 120, 120);
+    doc.text(text3, currentX, bottomY);
 
-    doc.save(`critical-stock-${format(new Date(), "yyyy-MM-dd")}.pdf`);
+    const dateFormatted = format(new Date(), "yyyy-MM-dd");
+    doc.save(`royal-karahi-critical-stock-${dateFormatted}.pdf`);
   };
 
   return (

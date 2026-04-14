@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import { signOut } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { SidebarContent } from "./Sidebar";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetTrigger } from "@/components/ui/sheet";
 import { useAuth } from "@/lib/auth";
 
 export function TopNav() {
@@ -26,6 +26,10 @@ export function TopNav() {
                 </Button>
               </SheetTrigger>
               <SheetContent side="left" className="p-0 w-64 border-none">
+                <SheetHeader className="sr-only">
+                  <SheetTitle>Navigation Menu</SheetTitle>
+                  <SheetDescription>Main navigation links for Royal Karahi management system.</SheetDescription>
+                </SheetHeader>
                 <SidebarContent onClose={() => setIsSidebarOpen(false)} />
               </SheetContent>
             </Sheet>
