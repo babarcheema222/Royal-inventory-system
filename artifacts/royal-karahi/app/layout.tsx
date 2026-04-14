@@ -2,6 +2,7 @@ import "@/index.css";
 import { TRPCProvider } from "@/components/providers/TRPCProvider";
 import { SessionProvider } from "next-auth/react";
 import { Toaster } from "@/components/ui/sonner";
+import { InactivityDetector } from "@/components/auth/InactivityDetector";
 
 export const metadata = {
   title: "Royal Karahi | Inventory Management",
@@ -36,6 +37,7 @@ export default function RootLayout({
 
       <body className="antialiased selection:bg-primary/10 selection:text-primary">
         <SessionProvider>
+          <InactivityDetector />
           <TRPCProvider>
             {children}
             <Toaster />

@@ -39,6 +39,81 @@ export default function Dashboard() {
     enabled: isLowStockModalOpen
   });
 
+  const { refetch: fetchAllStock } = api.inventory.list.useQuery({}, { enabled: false });
+
+  const downloadRemainingStockPDF = async () => {
+    const { data: stockItems } = await fetchAllStock();
+    if (!stockItems) return;
+
+    const doc = new jsPDF();
+    const dateStr = format(new Date(), "PPP p");
+
+    // Header
+    doc.setFontSize(22);
+    doc.setTextColor(153, 27, 27); // Burgundy
+    doc.text("ROYAL KARAHI", 14, 20);
+
+    doc.setFontSize(16);
+    doc.setTextColor(40, 40, 40);
+    doc.text("Remaining Stock Inventory Report", 14, 30);
+
+    doc.setFontSize(10);
+    doc.setTextColor(100, 100, 100);
+    doc.text(`Generated on: ${dateStr}`, 14, 38);
+
+    // Table
+    const tableData = stockItems.map(item => [
+      item.name,
+      item.categoryName,
+      `${Number(item.currentStock).toFixed(2)} ${item.unit}`
+    ]);
+
+    autoTable(doc, {
+      startY: 45,
+      head: [["Item Name", "Category", "Current Stock"]],
+      body: tableData,
+      headStyles: { fillColor: [153, 27, 27], fontStyle: 'bold' },
+      alternateRowStyles: { fillColor: [249, 249, 249] },
+      margin: { top: 45 },
+      styles: { fontSize: 10, cellPadding: 3 }
+    });
+
+    // Footer - Add to all pages
+    const pageCount = (doc as any).internal.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(9);
+
+      const centerX = doc.internal.pageSize.width / 2;
+      const bottomY = doc.internal.pageSize.height - 10;
+
+      const text1 = "(Designed and Manged by ";
+      const text2 = "BABAR CHEEMA";
+      const text3 = " )";
+
+      const width1 = doc.getTextWidth(text1);
+      const width2 = doc.getTextWidth(text2);
+      const width3 = doc.getTextWidth(text3);
+      const totalWidth = width1 + width2 + width3;
+
+      let currentX = centerX - (totalWidth / 2);
+
+      doc.setTextColor(120, 120, 120);
+      doc.text(text1, currentX, bottomY);
+      currentX += width1;
+
+      doc.setTextColor(37, 99, 235); // Professional Blue
+      doc.text(text2, currentX, bottomY);
+      currentX += width2;
+
+      doc.setTextColor(120, 120, 120);
+      doc.text(text3, currentX, bottomY);
+    }
+
+    doc.save(`remaining-stock-${format(new Date(), "yyyy-MM-dd")}.pdf`);
+  };
+
   const chartData = useMemo(() => {
     if (!Array.isArray(transactions)) return [];
 
@@ -65,30 +140,30 @@ export default function Dashboard() {
 
   const downloadLowStockPDF = () => {
     if (!lowStockItems) return;
-    
+
     const doc = new jsPDF();
     const dateStr = format(new Date(), "PPP p");
-    
+
     // Header
     doc.setFontSize(22);
     doc.setTextColor(153, 27, 27); // Burgundy
     doc.text("ROYAL KARAHI", 14, 20);
-    
+
     doc.setFontSize(16);
     doc.setTextColor(40, 40, 40);
     doc.text("Critical Stock Inventory Report", 14, 30);
-    
+
     doc.setFontSize(10);
     doc.setTextColor(100, 100, 100);
     doc.text(`Generated on: ${dateStr}`, 14, 38);
-    
+
     // Table
     const tableData = lowStockItems.map(item => [
       item.name,
       item.categoryName,
       `${Number(item.currentStock).toFixed(2)} ${item.unit}`
     ]);
-    
+
     autoTable(doc, {
       startY: 45,
       head: [["Item Name", "Category", "Current Stock"]],
@@ -98,40 +173,40 @@ export default function Dashboard() {
       margin: { top: 45 },
       styles: { fontSize: 10, cellPadding: 3 }
     });
-    
+
     // Footer - Add to all pages
     const pageCount = (doc as any).internal.getNumberOfPages();
     for (let i = 1; i <= pageCount; i++) {
       doc.setPage(i);
       doc.setFont("helvetica", "bold");
       doc.setFontSize(9);
-      
+
       const centerX = doc.internal.pageSize.width / 2;
       const bottomY = doc.internal.pageSize.height - 10;
-      
+
       const text1 = "(Designed and Manged by ";
       const text2 = "BABAR CHEEMA";
       const text3 = " )";
-      
+
       const width1 = doc.getTextWidth(text1);
       const width2 = doc.getTextWidth(text2);
       const width3 = doc.getTextWidth(text3);
       const totalWidth = width1 + width2 + width3;
-      
+
       let currentX = centerX - (totalWidth / 2);
-      
+
       doc.setTextColor(120, 120, 120);
       doc.text(text1, currentX, bottomY);
       currentX += width1;
-      
+
       doc.setTextColor(37, 99, 235); // Professional Blue
       doc.text(text2, currentX, bottomY);
       currentX += width2;
-      
+
       doc.setTextColor(120, 120, 120);
       doc.text(text3, currentX, bottomY);
     }
-    
+
     doc.save(`critical-stock-${format(new Date(), "yyyy-MM-dd")}.pdf`);
   };
 
@@ -161,7 +236,7 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        <Card 
+        <Card
           className="shadow-lg border-none bg-gradient-to-br from-card to-destructive/5 text-gray-800 cursor-pointer hover:scale-[1.02] transition-transform group"
           onClick={() => setIsLowStockModalOpen(true)}
         >
@@ -181,20 +256,32 @@ export default function Dashboard() {
 
         <Card className="shadow-lg border-none bg-gradient-to-br from-card to-secondary/5 text-gray-800">
           <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Departments</CardTitle>
-            <div className="bg-secondary/10 p-2 rounded-lg">
-              <Layers className="w-4 h-4 text-secondary" />
-            </div>
+            <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+              Remaining Stock
+            </CardTitle>
+
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-100 bg-red-50"
+              onClick={downloadRemainingStockPDF}
+              title="Download Remaining Stock PDF"
+            >
+              <Download className="w-5 h-5 stroke-[2.5]" />
+            </Button>
           </CardHeader>
+
           <CardContent>
-            <div className="text-3xl font-bold">{loadingSummary ? "..." : summary?.totalCategories || 0}</div>
-            <p className="text-xs text-muted-foreground mt-1">Master categories active</p>
+            <div className="text-xl font-bold">All Stock</div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Export full inventory list
+            </p>
           </CardContent>
         </Card>
 
         <Card className="shadow-lg border-none bg-gradient-to-br from-card to-accent/5 text-gray-800">
           <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Daily Velocity</CardTitle>
+            <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Daily History</CardTitle>
             <div className="bg-accent/10 p-2 rounded-lg">
               <Activity className="w-4 h-4 text-accent-foreground" />
             </div>
@@ -269,13 +356,13 @@ export default function Dashboard() {
             </DialogDescription>
             {lowStockItems && lowStockItems.length > 0 && (
               <div className="absolute right-12 top-6">
-                <Button 
+                <Button
                   onClick={downloadLowStockPDF}
-                  className="bg-primary hover:bg-primary/90 text-white font-bold flex items-center gap-2 h-9"
+                  className="bg-primary hover:bg-primary/90 text-white font-bold h-9 w-9 p-0 flex items-center justify-center rounded-lg shadow-sm"
                   size="sm"
+                  title="Download PDF"
                 >
-                  <Download className="w-4 h-4" />
-                  Download PDF
+                  <Download className="w-5 h-5" />
                 </Button>
               </div>
             )}

@@ -16,9 +16,14 @@ export default function AdminLayout({
 
   useEffect(() => {
     if (status === "unauthenticated") {
-      router.push("/login");
+      router.push("/login?reason=unauthenticated");
+    } else if (status === "authenticated") {
+      const role = (session?.user as any)?.role;
+      if (role !== "admin" && role !== "manager") {
+        router.push("/dashboard?error=access-denied");
+      }
     }
-  }, [status, router]);
+  }, [status, session?.user?.role, router]);
 
   if (status === "loading") {
     return (

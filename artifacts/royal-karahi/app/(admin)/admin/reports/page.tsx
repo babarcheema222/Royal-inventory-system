@@ -7,8 +7,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { FileText, Printer, BarChart3, CalendarDays } from "lucide-react";
+import { FileText, Download, BarChart3, CalendarDays } from "lucide-react";
 import { format, parseISO } from "date-fns";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 export default function Reports() {
   const todayStr = format(new Date(), "yyyy-MM-dd");
@@ -39,8 +41,112 @@ export default function Reports() {
     }, {} as Record<string, typeof transactions>);
   }, [transactions]);
 
-  const handlePrint = () => {
-    window.print();
+  const handleDownloadPDF = () => {
+    if (!transactions || !groupedTransactions) return;
+
+    const doc = new jsPDF();
+    const dateStr = format(new Date(), "PPP p");
+    const reportDateRange = `${format(parseISO(dateRange.from), "PPP")} — ${format(parseISO(dateRange.to), "PPP")}`;
+
+    // Header
+    doc.setFontSize(22);
+    doc.setTextColor(153, 27, 27); // Burgundy
+    doc.text("ROYAL KARAHI", 14, 20);
+
+    doc.setFontSize(16);
+    doc.setTextColor(40, 40, 40);
+    doc.text("Inventory Log Report", 14, 30);
+
+    doc.setFontSize(10);
+    doc.setTextColor(100, 100, 100);
+    doc.text(`Filtered: ${reportDateRange}`, 14, 38);
+    doc.text(`Generated on: ${dateStr}`, 14, 44);
+
+    // Summary Stats
+    doc.setFillColor(245, 245, 245);
+    doc.rect(14, 50, 182, 20, 'F');
+    doc.setTextColor(40, 40, 40);
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "bold");
+    doc.text("SUMMARY", 18, 56);
+    doc.setFont("helvetica", "normal");
+    doc.text(`Total In: ${summary?.totalIn || 0}`, 18, 64);
+    doc.text(`Total Out: ${summary?.totalOut || 0}`, 70, 64);
+    doc.text(`Total Transactions: ${summary?.totalTransactions || 0}`, 130, 64);
+
+    let currentY = 75;
+
+    // Categories
+    Object.entries(groupedTransactions)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .forEach(([category, items]) => {
+        if (currentY > 250) {
+          doc.addPage();
+          currentY = 20;
+        }
+
+        doc.setFontSize(12);
+        doc.setFont("helvetica", "bold");
+        doc.setTextColor(153, 27, 27);
+        doc.text(category.toUpperCase(), 14, currentY);
+        currentY += 5;
+
+        const tableData = items.map(tx => [
+          format(new Date(tx.createdAt), "MM/dd HH:mm"),
+          tx.subcategoryName,
+          tx.type,
+          `${tx.type === "IN" ? "+" : "-"}${tx.quantity} ${tx.unit}`,
+          tx.username,
+          tx.notes || "-"
+        ]);
+
+        autoTable(doc, {
+          startY: currentY,
+          head: [["Time", "Item Name", "Type", "Quantity", "User", "Notes"]],
+          body: tableData,
+          headStyles: { fillColor: [153, 27, 27], fontStyle: 'bold' },
+          alternateRowStyles: { fillColor: [249, 249, 249] },
+          styles: { fontSize: 8, cellPadding: 2 },
+          margin: { left: 14, right: 14 },
+          didDrawPage: (data) => {
+            currentY = data.cursor ? data.cursor.y + 15 : currentY + 20;
+          }
+        });
+        
+        // Ensure currentY is updated for next category
+        currentY = (doc as any).lastAutoTable.finalY + 15;
+      });
+
+    // Branding Footer
+    const pageCount = (doc as any).internal.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(9);
+      const centerX = doc.internal.pageSize.width / 2;
+      const bottomY = doc.internal.pageSize.height - 10;
+      
+      const text1 = "(Designed and Manged by ";
+      const text2 = "BABAR CHEEMA";
+      const text3 = " )";
+      
+      const width1 = doc.getTextWidth(text1);
+      const width2 = doc.getTextWidth(text2);
+      const width3 = doc.getTextWidth(text3);
+      const totalWidth = width1 + width2 + width3;
+      
+      let startX = centerX - (totalWidth / 2);
+      doc.setTextColor(120, 120, 120);
+      doc.text(text1, startX, bottomY);
+      startX += width1;
+      doc.setTextColor(37, 99, 235);
+      doc.text(text2, startX, bottomY);
+      startX += width2;
+      doc.setTextColor(120, 120, 120);
+      doc.text(text3, startX, bottomY);
+    }
+
+    doc.save(`inventory-report-${format(new Date(), "yyyy-MM-dd")}.pdf`);
   };
 
   const setToday = () => {
@@ -58,8 +164,8 @@ export default function Reports() {
           <p className="text-muted-foreground mt-1 text-sm font-bold uppercase">Audit stock movements and inventory history.</p>
         </div>
         <div className="flex gap-3">
-          <Button variant="outline" onClick={handlePrint} className="font-bold border-2">
-            <Printer className="h-4 w-4 mr-2" /> Print Report
+          <Button variant="outline" onClick={handleDownloadPDF} className="font-bold border-2">
+            <Download className="h-4 w-4 mr-2" /> Download PDF
           </Button>
         </div>
       </div>

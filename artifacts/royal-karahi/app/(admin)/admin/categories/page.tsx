@@ -13,7 +13,7 @@ import { toast } from "sonner";
 export default function Categories() {
   const { data: categories, isLoading, refetch } = api.inventory.getCategories.useQuery();
   const utils = api.useUtils();
-  
+
   const createCatMutation = api.inventory.createCategory.useMutation({
     onSuccess: () => {
       toast.success("Category created");
@@ -84,21 +84,21 @@ export default function Categories() {
     <div className="p-4 md:p-8 space-y-8 max-w-6xl mx-auto">
       <div>
         <h1 className="text-3xl font-bold text-primary tracking-tight">Category Management</h1>
-        <p className="text-muted-foreground mt-1">Organize your inventory structure.</p>
+        <p className="text-muted-foreground mt-1">Organize Royal Karahi inventory structure.</p>
       </div>
 
       <Card className="shadow-sm text-gray-800">
         <CardHeader className="pb-4">
           <CardTitle>Add New Category</CardTitle>
-          <CardDescription>Create a top-level group and define its unit (e.g., Meats - Kg, Dairy - Liters)</CardDescription>
+          <CardDescription>Create a category and define its unit (e.g., Meats - Kg, Dairy - Liters)</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleCreateCategory} className="flex flex-col md:flex-row gap-4">
             <div className="flex-1">
               <Label htmlFor="catName" className="mb-2 block">Category Name</Label>
-              <Input 
+              <Input
                 id="catName"
-                placeholder="e.g., Meats, Vegetables" 
+                placeholder="e.g., Meats, Vegetables"
                 value={newCatName}
                 onChange={(e) => setNewCatName(e.target.value)}
                 disabled={createCatMutation.isPending}
@@ -141,9 +141,9 @@ export default function Categories() {
                     <CardTitle className="text-xl">{category.name}</CardTitle>
                     <p className="text-xs font-bold text-primary uppercase tracking-tighter">Unit: {(category as any).unit}</p>
                   </div>
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
+                  <Button
+                    variant="ghost"
+                    size="icon"
                     className="text-destructive hover:bg-destructive/10"
                     onClick={() => handleDeleteCategory(category.id)}
                     disabled={deleteCatMutation.isPending}
@@ -176,7 +176,7 @@ export default function Categories() {
 
                   <form onSubmit={(e) => handleCreateSubcategory(e, category.id)} className="mt-auto">
                     <div className="flex gap-2">
-                      <Input 
+                      <Input
                         placeholder={`New item name...`}
                         className="flex-1"
                         value={newSubNames[category.id] || ""}
@@ -193,73 +193,6 @@ export default function Categories() {
             ))}
           </div>
         )}
-      </div>
-      <div className="pt-8 border-t">
-        <div className="mb-6">
-          <h2 className="text-2xl font-bold text-primary tracking-tight">All Sub-categories Overview</h2>
-          <p className="text-muted-foreground mt-1">A consolidated list of all items across all categories.</p>
-        </div>
-
-        <div className="bg-card rounded-lg border shadow-sm overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left">
-              <thead className="bg-muted/50 text-muted-foreground font-medium border-b">
-                <tr>
-                  <th className="px-6 py-3">Item Name</th>
-                  <th className="px-6 py-3">Parent Category</th>
-                  <th className="px-6 py-3">Unit</th>
-                  <th className="px-6 py-3 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y text-gray-800">
-                {(() => {
-                  const allSubcategories = categories?.flatMap(cat => 
-                    ((cat as any).subcategories || []).map((sub: any) => ({
-                      ...sub,
-                      categoryName: cat.name,
-                      unit: (cat as any).unit
-                    }))
-                  ) || [];
-
-                  if (allSubcategories.length === 0) {
-                    return (
-                      <tr>
-                        <td colSpan={4} className="px-6 py-12 text-center text-muted-foreground font-bold">
-                          No items added yet.
-                        </td>
-                      </tr>
-                    );
-                  }
-
-                  return allSubcategories.map((sub: any) => (
-                    <tr key={sub.id} className="hover:bg-muted/5 transition-colors">
-                      <td className="px-6 py-4 font-medium">{sub.name}</td>
-                      <td className="px-6 py-4">
-                        <Badge variant="outline" className="font-normal">
-                          {sub.categoryName}
-                        </Badge>
-                      </td>
-                      <td className="px-6 py-4 text-muted-foreground uppercase text-[10px] font-bold">
-                        {sub.unit}
-                      </td>
-                      <td className="px-6 py-4 text-right">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                          onClick={() => handleDeleteSubcategory(sub.id)}
-                          disabled={deleteSubMutation.isPending}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </td>
-                    </tr>
-                  ));
-                })()}
-              </tbody>
-            </table>
-          </div>
-        </div>
       </div>
     </div>
   );
