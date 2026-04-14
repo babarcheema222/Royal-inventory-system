@@ -11,7 +11,7 @@ import { Package, AlertTriangle, Layers, Activity, TrendingUp, ArrowRight, Downl
 import Link from "next/link";
 import { format, subDays, isSameDay } from "date-fns";
 import jsPDF from "jspdf";
-import "jspdf-autotable";
+import autoTable from "jspdf-autotable";
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import {
   ChartConfig,
@@ -89,7 +89,7 @@ export default function Dashboard() {
       `${Number(item.currentStock).toFixed(2)} ${item.unit}`
     ]);
     
-    (doc as any).autoTable({
+    autoTable(doc, {
       startY: 45,
       head: [["Item Name", "Category", "Current Stock"]],
       body: tableData,
