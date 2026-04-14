@@ -51,38 +51,38 @@ export default function Users() {
   
   const createUserMutation = api.user.create.useMutation({
     onSuccess: () => {
-      toast.success("User account created");
+      toast.success("User account created", { duration: 1500 });
       utils.user.list.invalidate();
       setUsername("");
       setPassword("");
       setRole("user");
     },
     onError: (err) => {
-      toast.error(err.message || "Failed to create user");
+      toast.error(err.message || "Failed to create user", { duration: 1500 });
     }
   });
 
   const deleteUserMutation = api.user.delete.useMutation({
     onSuccess: () => {
-      toast.success("User deleted");
+      toast.success("User deleted", { duration: 1500 });
       utils.user.list.invalidate();
     }
   });
 
   const updatePasswordMutation = api.user.updatePassword.useMutation({
     onSuccess: () => {
-      toast.success("Password updated successfully");
+      toast.success("Password updated successfully", { duration: 1500 });
       utils.user.list.invalidate();
     },
     onError: (err) => {
-      toast.error(err.message || "Failed to update password");
+      toast.error(err.message || "Failed to update password", { duration: 1500 });
     }
   });
 
   const handleCreateUser = (e: React.FormEvent) => {
     e.preventDefault();
     if (!password) {
-      toast.error("Password is required");
+      toast.error("Password is required", { duration: 1500 });
       return;
     }
     createUserMutation.mutate({ username, password, role });

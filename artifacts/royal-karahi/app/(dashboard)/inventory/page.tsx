@@ -24,14 +24,14 @@ export default function Inventory() {
   
   const createTxMutation = api.inventory.logTransaction.useMutation({
     onSuccess: () => {
-      toast.success("Transaction recorded successfully", { duration: 2000 });
+      toast.success("Transaction recorded successfully", { duration: 1500 });
       refetch();
       setTxDialog(null);
       setQuantity("");
       setNotes("");
     },
     onError: (err) => {
-      toast.error(err.message || "Failed to record transaction", { duration: 2000 });
+      toast.error(err.message || "Failed to record transaction", { duration: 1500 });
     }
   });
 
@@ -42,7 +42,7 @@ export default function Inventory() {
     // Frontend validation to prevent negative stock
     const item = items?.find(i => i.id === txDialog.subcategoryId);
     if (txDialog.type === "OUT" && item && Number(quantity) > item.currentStock) {
-      toast.error(`Insufficient stock! Max available: ${item.currentStock.toFixed(2)} ${item.unit}`, { duration: 2000 });
+      toast.error(`Insufficient stock! Max available: ${item.currentStock.toFixed(2)} ${item.unit}`, { duration: 1500 });
       return;
     }
 

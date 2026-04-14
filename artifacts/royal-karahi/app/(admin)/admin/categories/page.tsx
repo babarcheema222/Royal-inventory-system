@@ -16,7 +16,7 @@ export default function Categories() {
 
   const createCatMutation = api.inventory.createCategory.useMutation({
     onSuccess: () => {
-      toast.success("Category created", { duration: 2000 });
+      toast.success("Category created", { duration: 1500 });
       utils.inventory.getCategories.invalidate();
       setNewCatName("");
       setNewCatUnit("Kg");
@@ -25,21 +25,21 @@ export default function Categories() {
 
   const deleteCatMutation = api.inventory.deleteCategory.useMutation({
     onSuccess: () => {
-      toast.success("Category deleted", { duration: 2000 });
+      toast.success("Category deleted", { duration: 1500 });
       utils.inventory.getCategories.invalidate();
     }
   });
 
   const createSubMutation = api.inventory.createSubcategory.useMutation({
     onSuccess: () => {
-      toast.success("Item added", { duration: 2000 });
+      toast.success("Item added", { duration: 1500 });
       utils.inventory.getCategories.invalidate();
     }
   });
 
   const deleteSubMutation = api.inventory.deleteSubcategory.useMutation({
     onSuccess: () => {
-      toast.success("Item deleted", { duration: 2000 });
+      toast.success("Item deleted", { duration: 1500 });
       utils.inventory.getCategories.invalidate();
     }
   });
