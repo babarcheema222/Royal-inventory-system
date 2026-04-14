@@ -1,12 +1,9 @@
 {
-  "buildCommand": "pnpm --filter @workspace/royal-karahi run build",
+  "buildCommand": "pnpm build",
   "outputDirectory": "artifacts/royal-karahi/dist/public",
-  "installCommand": "pnpm install",
-  "framework": null,
+  "framework": "vite",
   "rewrites": [
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
-    }
+    { "source": "/api/(.*)", "destination": "/api/$1" },
+    { "source": "/(.*)", "destination": "/index.html" }
   ]
 }

@@ -1,5 +1,4 @@
 @import "tailwindcss";
-@import "tw-animate-css";
 @plugin "@tailwindcss/typography";
 
 @custom-variant dark (&:is(.dark *));
@@ -67,80 +66,77 @@
 }
 
 :root {
-  --button-outline: rgba(0, 0, 0, .10);
-  --badge-outline: rgba(0, 0, 0, .05);
+  --button-outline: rgba(0,0,0, .08);
+  --badge-outline: rgba(0,0,0, .04);
 
-  --opaque-button-border-intensity: -8;
+  --opaque-button-border-intensity: -10;
 
-  --elevate-1: rgba(0, 0, 0, .03);
-  --elevate-2: rgba(0, 0, 0, .08);
+  --elevate-1: rgba(61, 8, 20, .02);
+  --elevate-2: rgba(61, 8, 20, .05);
 
-  /* Cream/off-white background */
-  --background: 40 33% 98%;
-  /* Dark maroon foreground */
-  --foreground: 350 40% 15%;
+  /* Antique Cream background */
+  --background: 45 40% 98%;
+  /* Deep Espresso foreground */
+  --foreground: 30 20% 10%;
 
-  --border: 40 20% 88%;
+  --border: 30 15% 90%;
 
   --card: 0 0% 100%;
-  --card-foreground: 350 40% 15%;
-  --card-border: 40 20% 88%;
+  --card-foreground: 30 20% 10%;
+  --card-border: 45 15% 92%;
 
-  --sidebar: 350 40% 15%;
-  --sidebar-foreground: 40 33% 98%;
-  --sidebar-border: 350 40% 10%;
-  --sidebar-primary: 43 74% 49%;
-  --sidebar-primary-foreground: 350 40% 15%;
-  --sidebar-accent: 350 40% 20%;
-  --sidebar-accent-foreground: 40 33% 98%;
-  --sidebar-ring: 43 74% 49%;
+  /* Darker Burgundy Sidebar */
+  --sidebar: 345 50% 12%;
+  --sidebar-foreground: 45 20% 95%;
+  --sidebar-border: 345 50% 8%;
+  --sidebar-primary: 45 60% 65%; /* Muted Gold */
+  --sidebar-primary-foreground: 345 50% 10%;
+  --sidebar-accent: 345 40% 18%;
+  --sidebar-accent-foreground: 45 60% 85%;
+  --sidebar-ring: 45 60% 65%;
 
   --popover: 0 0% 100%;
-  --popover-foreground: 350 40% 15%;
-  --popover-border: 40 20% 88%;
+  --popover-foreground: 30 20% 10%;
+  --popover-border: 45 15% 92%;
 
-  /* Deep burgundy primary */
-  --primary: 350 50% 30%;
-  --primary-foreground: 40 33% 98%;
+  /* Deep Burgundy primary */
+  --primary: 345 60% 25%;
+  --primary-foreground: 45 40% 98%;
 
-  /* Gold secondary */
-  --secondary: 43 74% 49%;
-  --secondary-foreground: 350 40% 15%;
+  /* Soft Gold secondary */
+  --secondary: 45 60% 70%;
+  --secondary-foreground: 345 60% 20%;
 
-  --muted: 40 20% 92%;
-  --muted-foreground: 350 20% 40%;
+  --muted: 30 10% 95%;
+  --muted-foreground: 30 10% 45%;
 
-  --accent: 40 20% 92%;
-  --accent-foreground: 350 40% 15%;
+  --accent: 45 60% 95%;
+  --accent-foreground: 345 60% 25%;
 
-  --destructive: 0 84% 60%;
+  --destructive: 0 70% 45%;
   --destructive-foreground: 0 0% 100%;
 
-  --input: 40 20% 88%;
-  --ring: 350 50% 30%;
+  --input: 30 15% 90%;
+  --ring: 345 60% 25%;
+  
+  --chart-1: 345 60% 25%;
+  --chart-2: 45 60% 65%;
+  --chart-3: 160 40% 35%;
+  --chart-4: 200 40% 35%;
+  --chart-5: 280 40% 35%;
 
-  --chart-1: 350 50% 30%;
-  --chart-2: 43 74% 49%;
-  --chart-3: 160 60% 40%;
-  --chart-4: 220 50% 40%;
-  --chart-5: 300 40% 40%;
-
-  --app-font-sans: "Inter", sans-serif;
-  --app-font-serif: "Georgia", serif;
-  --app-font-mono: "Menlo", monospace;
-
-  --radius: 0.25rem;
-
-  --shadow-2xs: 0px 2px 0px 0px hsl(0 0% 0% / 0.05);
-  --shadow-xs: 0px 2px 0px 0px hsl(0 0% 0% / 0.05);
-  --shadow-sm: 0px 2px 0px 0px hsl(0 0% 0% / 0.05), 0px 1px 2px -1px hsl(0 0% 0% / 0.05);
-  --shadow: 0px 2px 0px 0px hsl(0 0% 0% / 0.05), 0px 1px 2px -1px hsl(0 0% 0% / 0.05);
-  --shadow-md: 0px 2px 0px 0px hsl(0 0% 0% / 0.05), 0px 2px 4px -1px hsl(0 0% 0% / 0.05);
-  --shadow-lg: 0px 2px 0px 0px hsl(0 0% 0% / 0.05), 0px 4px 6px -1px hsl(0 0% 0% / 0.05);
-  --shadow-xl: 0px 2px 0px 0px hsl(0 0% 0% / 0.05), 0px 8px 10px -1px hsl(0 0% 0% / 0.05);
-  --shadow-2xl: 0px 2px 0px 0px hsl(0 0% 0% / 0.05);
-
-  --tracking-normal: 0em;
+  --app-font-sans: "Inter", system-ui, sans-serif;
+  --app-font-serif: "Playfair Display", serif;
+  --app-font-mono: "Fira Code", monospace;
+  
+  --radius: 0.5rem;
+  
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-md: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  
+  --tracking-tight: -0.01em;
   --spacing: 0.25rem;
 
   --sidebar-primary-border: hsl(var(--sidebar-primary));
@@ -152,36 +148,9 @@
   --destructive-border: hsl(var(--destructive));
 }
 
+
 .dark {
-  --background: 350 40% 10%;
-  --foreground: 40 33% 98%;
-  --border: 350 30% 20%;
-  --card: 350 35% 14%;
-  --card-foreground: 40 33% 98%;
-  --card-border: 350 30% 20%;
-  --sidebar: 350 40% 8%;
-  --sidebar-foreground: 40 33% 98%;
-  --sidebar-border: 350 30% 20%;
-  --sidebar-primary: 43 74% 49%;
-  --sidebar-primary-foreground: 350 40% 10%;
-  --sidebar-accent: 350 35% 20%;
-  --sidebar-accent-foreground: 40 33% 98%;
-  --sidebar-ring: 43 74% 49%;
-  --popover: 350 35% 14%;
-  --popover-foreground: 40 33% 98%;
-  --popover-border: 350 30% 20%;
-  --primary: 350 50% 40%;
-  --primary-foreground: 40 33% 98%;
-  --secondary: 43 74% 49%;
-  --secondary-foreground: 350 40% 10%;
-  --muted: 350 35% 20%;
-  --muted-foreground: 40 20% 70%;
-  --accent: 350 35% 20%;
-  --accent-foreground: 40 33% 98%;
-  --destructive: 0 84% 60%;
-  --destructive-foreground: 0 0% 100%;
-  --input: 350 30% 20%;
-  --ring: 43 74% 49%;
+  /* No dark mode needed */
 }
 
 @layer base {
@@ -198,7 +167,6 @@
   input[type="search"]::-webkit-search-cancel-button {
     @apply hidden;
   }
-
   [contenteditable][data-placeholder]:empty::before {
     content: attr(data-placeholder);
     color: hsl(var(--muted-foreground));
@@ -210,19 +178,15 @@
   body * {
     visibility: hidden;
   }
-
-  .print-area,
-  .print-area * {
+  .print-area, .print-area * {
     visibility: visible;
   }
-
   .print-area {
     position: absolute;
     left: 0;
     top: 0;
     width: 100%;
   }
-
   .no-print {
     display: none !important;
   }

@@ -21,89 +21,85 @@ tags:
     description: Reports
   - name: users
     description: User management
-  - name: suppliers
-    description: Supplier management
 paths:
   /healthz:
     get:
       operationId: healthCheck
-      tags:
-        - health
+      tags: [health]
       summary: Health check
       responses:
-        '200':
+        "200":
           description: Healthy
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/HealthStatus'
+                $ref: "#/components/schemas/HealthStatus"
+
   /auth/login:
     post:
       operationId: login
-      tags:
-        - auth
+      tags: [auth]
       summary: Login user
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/LoginRequest'
+              $ref: "#/components/schemas/LoginRequest"
       responses:
-        '200':
+        "200":
           description: Login successful
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/LoginResponse'
-        '401':
+                $ref: "#/components/schemas/LoginResponse"
+        "401":
           description: Invalid credentials
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: "#/components/schemas/ErrorResponse"
+
   /auth/me:
     get:
       operationId: getMe
-      tags:
-        - auth
+      tags: [auth]
       summary: Get current user
       security:
         - bearerAuth: []
       responses:
-        '200':
+        "200":
           description: Current user
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
-        '401':
+                $ref: "#/components/schemas/User"
+        "401":
           description: Unauthorized
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: "#/components/schemas/ErrorResponse"
+
   /categories:
     get:
       operationId: listCategories
-      tags:
-        - categories
+      tags: [categories]
       summary: List all categories with subcategories
       security:
         - bearerAuth: []
       responses:
-        '200':
+        "200":
           description: List of categories
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Category'
+                  $ref: "#/components/schemas/Category"
     post:
       operationId: createCategory
-      tags:
-        - categories
+      tags: [categories]
       summary: Create a category
       security:
         - bearerAuth: []
@@ -112,19 +108,19 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateCategoryRequest'
+              $ref: "#/components/schemas/CreateCategoryRequest"
       responses:
-        '201':
+        "201":
           description: Category created
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Category'
+                $ref: "#/components/schemas/Category"
+
   /categories/{id}:
     delete:
       operationId: deleteCategory
-      tags:
-        - categories
+      tags: [categories]
       summary: Delete a category
       security:
         - bearerAuth: []
@@ -135,19 +131,19 @@ paths:
           schema:
             type: integer
       responses:
-        '204':
+        "204":
           description: Deleted
-        '404':
+        "404":
           description: Not found
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: "#/components/schemas/ErrorResponse"
+
   /subcategories:
     post:
       operationId: createSubcategory
-      tags:
-        - categories
+      tags: [categories]
       summary: Create a subcategory
       security:
         - bearerAuth: []
@@ -156,19 +152,19 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateSubcategoryRequest'
+              $ref: "#/components/schemas/CreateSubcategoryRequest"
       responses:
-        '201':
+        "201":
           description: Subcategory created
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Subcategory'
+                $ref: "#/components/schemas/Subcategory"
+
   /subcategories/{id}:
     delete:
       operationId: deleteSubcategory
-      tags:
-        - categories
+      tags: [categories]
       summary: Delete a subcategory
       security:
         - bearerAuth: []
@@ -179,19 +175,19 @@ paths:
           schema:
             type: integer
       responses:
-        '204':
+        "204":
           description: Deleted
-        '404':
+        "404":
           description: Not found
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: "#/components/schemas/ErrorResponse"
+
   /inventory:
     get:
       operationId: listInventory
-      tags:
-        - inventory
+      tags: [inventory]
       summary: List all inventory items with current stock
       security:
         - bearerAuth: []
@@ -202,51 +198,51 @@ paths:
             type: string
           description: Search by name
       responses:
-        '200':
+        "200":
           description: Inventory items
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/InventoryItem'
+                  $ref: "#/components/schemas/InventoryItem"
+
   /inventory/low-stock:
     get:
       operationId: getLowStockItems
-      tags:
-        - inventory
+      tags: [inventory]
       summary: Get items with quantity below 10
       security:
         - bearerAuth: []
       responses:
-        '200':
+        "200":
           description: Low stock items
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/InventoryItem'
+                  $ref: "#/components/schemas/InventoryItem"
+
   /inventory/summary:
     get:
       operationId: getInventorySummary
-      tags:
-        - inventory
+      tags: [inventory]
       summary: Get inventory summary stats
       security:
         - bearerAuth: []
       responses:
-        '200':
+        "200":
           description: Inventory summary
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/InventorySummary'
+                $ref: "#/components/schemas/InventorySummary"
+
   /transactions:
     post:
       operationId: createTransaction
-      tags:
-        - transactions
+      tags: [transactions]
       summary: Log a stock IN or OUT transaction
       security:
         - bearerAuth: []
@@ -255,42 +251,42 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateTransactionRequest'
+              $ref: "#/components/schemas/CreateTransactionRequest"
       responses:
-        '201':
+        "201":
           description: Transaction created
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Transaction'
-        '400':
+                $ref: "#/components/schemas/Transaction"
+        "400":
           description: Bad request
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: "#/components/schemas/ErrorResponse"
+
   /transactions/recent:
     get:
       operationId: getRecentTransactions
-      tags:
-        - transactions
+      tags: [transactions]
       summary: Get recent transactions
       security:
         - bearerAuth: []
       responses:
-        '200':
+        "200":
           description: Recent transactions
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/TransactionDetail'
+                  $ref: "#/components/schemas/TransactionDetail"
+
   /reports/daily:
     get:
       operationId: getDailyReport
-      tags:
-        - reports
+      tags: [reports]
       summary: Get daily stock report for a given date
       security:
         - bearerAuth: []
@@ -302,17 +298,17 @@ paths:
             type: string
           description: Date in YYYY-MM-DD format
       responses:
-        '200':
+        "200":
           description: Daily report
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/DailyReport'
+                $ref: "#/components/schemas/DailyReport"
+
   /reports/range:
     get:
       operationId: getRangeReport
-      tags:
-        - reports
+      tags: [reports]
       summary: Get report for a date range
       security:
         - bearerAuth: []
@@ -330,33 +326,32 @@ paths:
             type: string
           description: End date YYYY-MM-DD
       responses:
-        '200':
+        "200":
           description: Range report
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RangeReport'
+                $ref: "#/components/schemas/RangeReport"
+
   /users:
     get:
       operationId: listUsers
-      tags:
-        - users
+      tags: [users]
       summary: List all users (admin only)
       security:
         - bearerAuth: []
       responses:
-        '200':
+        "200":
           description: Users list
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/User'
+                  $ref: "#/components/schemas/User"
     post:
       operationId: createUser
-      tags:
-        - users
+      tags: [users]
       summary: Create a new user (admin only)
       security:
         - bearerAuth: []
@@ -365,25 +360,25 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateUserRequest'
+              $ref: "#/components/schemas/CreateUserRequest"
       responses:
-        '201':
+        "201":
           description: User created
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
-        '400':
+                $ref: "#/components/schemas/User"
+        "400":
           description: Bad request
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: "#/components/schemas/ErrorResponse"
+
   /users/{id}:
     delete:
       operationId: deleteUser
-      tags:
-        - users
+      tags: [users]
       summary: Delete a user (admin only)
       security:
         - bearerAuth: []
@@ -394,110 +389,22 @@ paths:
           schema:
             type: integer
       responses:
-        '204':
+        "204":
           description: Deleted
-        '404':
+        "404":
           description: Not found
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-    put:
-      operationId: updateUser
-      tags:
-        - users
-      summary: Update a user (admin only)
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UpdateUserRequest'
-      responses:
-        '200':
-          description: User updated
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/User'
-        '404':
-          description: Not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-  /suppliers:
-    get:
-      operationId: listSuppliers
-      tags:
-        - suppliers
-      summary: List all suppliers
-      security:
-        - bearerAuth: []
-      responses:
-        '200':
-          description: Suppliers list
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Supplier'
-    post:
-      operationId: createSupplier
-      tags:
-        - suppliers
-      summary: Create a supplier
-      security:
-        - bearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CreateSupplierRequest'
-      responses:
-        '201':
-          description: Created
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Supplier'
-  /auth/profile:
-    put:
-      operationId: updateProfile
-      tags:
-        - auth
-      summary: Update current user profile
-      security:
-        - bearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UpdateProfileRequest'
-      responses:
-        '200':
-          description: Profile updated
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/User'
+                $ref: "#/components/schemas/ErrorResponse"
+
 components:
   securitySchemes:
     bearerAuth:
       type: http
       scheme: bearer
       bearerFormat: JWT
+
   schemas:
     HealthStatus:
       type: object
@@ -506,6 +413,7 @@ components:
           type: string
       required:
         - status
+
     ErrorResponse:
       type: object
       properties:
@@ -513,6 +421,7 @@ components:
           type: string
       required:
         - error
+
     LoginRequest:
       type: object
       properties:
@@ -523,16 +432,18 @@ components:
       required:
         - username
         - password
+
     LoginResponse:
       type: object
       properties:
         token:
           type: string
         user:
-          $ref: '#/components/schemas/User'
+          $ref: "#/components/schemas/User"
       required:
         - token
         - user
+
     User:
       type: object
       properties:
@@ -542,21 +453,16 @@ components:
           type: string
         role:
           type: string
-          enum:
-            - admin
-            - user
+          enum: [admin, user]
         createdAt:
           type: string
           format: date-time
-        email:
-          type:
-            - string
-            - 'null'
       required:
         - id
         - username
         - role
         - createdAt
+
     CreateUserRequest:
       type: object
       properties:
@@ -566,17 +472,12 @@ components:
           type: string
         role:
           type: string
-          enum:
-            - admin
-            - user
-        email:
-          type:
-            - string
-            - 'null'
+          enum: [admin, user]
       required:
         - username
         - password
         - role
+
     Category:
       type: object
       properties:
@@ -587,18 +488,16 @@ components:
         subcategories:
           type: array
           items:
-            $ref: '#/components/schemas/Subcategory'
+            $ref: "#/components/schemas/Subcategory"
         createdAt:
           type: string
           format: date-time
-        unit:
-          type: string
       required:
         - id
         - name
         - subcategories
         - createdAt
-        - unit
+
     Subcategory:
       type: object
       properties:
@@ -609,34 +508,25 @@ components:
         categoryId:
           type: integer
         currentStock:
-          type: number
+          type: integer
         createdAt:
           type: string
           format: date-time
-        lowStockThreshold:
-          type: number
-        costPerUnit:
-          type: number
       required:
         - id
         - name
         - categoryId
         - currentStock
         - createdAt
-        - lowStockThreshold
-        - costPerUnit
-        - lowStockThreshold
-        - costPerUnit
+
     CreateCategoryRequest:
       type: object
       properties:
         name:
           type: string
-        unit:
-          type: string
       required:
         - name
-        - unit
+
     CreateSubcategoryRequest:
       type: object
       properties:
@@ -647,6 +537,7 @@ components:
       required:
         - name
         - categoryId
+
     InventoryItem:
       type: object
       properties:
@@ -658,19 +549,13 @@ components:
           type: integer
         categoryName:
           type: string
-        unit:
-          type: string
         currentStock:
-          type: number
+          type: integer
         isLowStock:
           type: boolean
         createdAt:
           type: string
           format: date-time
-        lowStockThreshold:
-          type: number
-        costPerUnit:
-          type: number
       required:
         - id
         - name
@@ -679,7 +564,7 @@ components:
         - currentStock
         - isLowStock
         - createdAt
-        - unit
+
     InventorySummary:
       type: object
       properties:
@@ -696,6 +581,7 @@ components:
         - lowStockCount
         - totalCategories
         - totalTransactionsToday
+
     CreateTransactionRequest:
       type: object
       properties:
@@ -703,23 +589,16 @@ components:
           type: integer
         type:
           type: string
-          enum:
-            - IN
-            - OUT
+          enum: [IN, OUT]
         quantity:
-          type: number
+          type: integer
         notes:
-          type:
-            - string
-            - 'null'
-        supplierId:
-          type:
-            - integer
-            - 'null'
+          type: ["string", "null"]
       required:
         - subcategoryId
         - type
         - quantity
+
     Transaction:
       type: object
       properties:
@@ -729,24 +608,16 @@ components:
           type: integer
         type:
           type: string
-          enum:
-            - IN
-            - OUT
+          enum: [IN, OUT]
         quantity:
-          type: number
+          type: integer
         notes:
-          type:
-            - string
-            - 'null'
+          type: ["string", "null"]
         userId:
           type: integer
         createdAt:
           type: string
           format: date-time
-        supplierId:
-          type:
-            - integer
-            - 'null'
       required:
         - id
         - subcategoryId
@@ -754,6 +625,7 @@ components:
         - quantity
         - userId
         - createdAt
+
     TransactionDetail:
       type: object
       properties:
@@ -767,15 +639,11 @@ components:
           type: string
         type:
           type: string
-          enum:
-            - IN
-            - OUT
+          enum: [IN, OUT]
         quantity:
-          type: number
+          type: integer
         notes:
-          type:
-            - string
-            - 'null'
+          type: ["string", "null"]
         userId:
           type: integer
         username:
@@ -783,16 +651,6 @@ components:
         createdAt:
           type: string
           format: date-time
-        supplierId:
-          type:
-            - integer
-            - 'null'
-        supplierName:
-          type:
-            - string
-            - 'null'
-        unit:
-          type: string
       required:
         - id
         - subcategoryId
@@ -803,7 +661,7 @@ components:
         - userId
         - username
         - createdAt
-        - unit
+
     DailyReport:
       type: object
       properties:
@@ -812,13 +670,14 @@ components:
         transactions:
           type: array
           items:
-            $ref: '#/components/schemas/TransactionDetail'
+            $ref: "#/components/schemas/TransactionDetail"
         summary:
-          $ref: '#/components/schemas/ReportSummary'
+          $ref: "#/components/schemas/ReportSummary"
       required:
         - date
         - transactions
         - summary
+
     RangeReport:
       type: object
       properties:
@@ -829,14 +688,15 @@ components:
         transactions:
           type: array
           items:
-            $ref: '#/components/schemas/TransactionDetail'
+            $ref: "#/components/schemas/TransactionDetail"
         summary:
-          $ref: '#/components/schemas/ReportSummary'
+          $ref: "#/components/schemas/ReportSummary"
       required:
         - from
         - to
         - transactions
         - summary
+
     ReportSummary:
       type: object
       properties:
@@ -850,76 +710,3 @@ components:
         - totalIn
         - totalOut
         - totalTransactions
-    Supplier:
-      type: object
-      properties:
-        id:
-          type: integer
-        name:
-          type: string
-        contactInfo:
-          type:
-            - string
-            - 'null'
-        createdAt:
-          type: string
-          format: date-time
-      required:
-        - id
-        - name
-        - createdAt
-    CreateSupplierRequest:
-      type: object
-      properties:
-        name:
-          type: string
-        contactInfo:
-          type:
-            - string
-            - 'null'
-      required:
-        - name
-    MenuItem:
-      type: object
-      properties:
-        id:
-          type: integer
-        name:
-          type: string
-        price:
-          type: number
-        createdAt:
-          type: string
-          format: date-time
-      required:
-        - id
-        - name
-        - price
-        - createdAt
-    UpdateUserRequest:
-      type: object
-      properties:
-        email:
-          type:
-            - string
-            - 'null'
-        password:
-          type:
-            - string
-            - 'null'
-        role:
-          type: string
-          enum:
-            - admin
-            - user
-    UpdateProfileRequest:
-      type: object
-      properties:
-        email:
-          type:
-            - string
-            - 'null'
-        password:
-          type:
-            - string
-            - 'null'

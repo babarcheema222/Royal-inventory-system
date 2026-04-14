@@ -1,36 +1,69 @@
-import { LogOut, Package, Moon, Sun, UserCircle } from "lucide-react";
-import { useAuth } from "@/lib/auth";
+"use client";
+
+import { useState } from "react";
+import { LogOut, Package, Menu } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { signOut } from "next-auth/react";
 import { Button } from "@/components/ui/button";
-import { useTheme } from "next-themes";
-import { Link } from "wouter";
+import { SidebarContent } from "./Sidebar";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { useAuth } from "@/lib/auth";
 
 export function TopNav() {
-  const { logout, user, isAdmin } = useAuth();
-  const { theme, setTheme } = useTheme();
-
-  if (isAdmin) return null; // Admin uses sidebar instead
+  const { user, isAnyAdmin, logout } = useAuth();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   return (
-    <header className="h-16 border-b border-border bg-card flex items-center justify-between px-6 no-print">
+    <header className="h-16 border-b border-border bg-card flex items-center justify-between px-6 no-print flex-shrink-0">
       <div className="flex items-center gap-2">
-        <Package className="h-6 w-6 text-primary" />
-        <h1 className="text-xl font-bold text-primary tracking-tight">ROYAL KARAHI</h1>
+        {isAnyAdmin && (
+          <div className="md:hidden mr-2">
+            <Sheet open={isSidebarOpen} onOpenChange={setIsSidebarOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" className="h-10 px-2 flex items-center gap-2">
+                  <Menu className="h-6 w-6" />
+                  <span className="text-xs font-bold uppercase">Menu</span>
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="p-0 w-64 border-none">
+                <SidebarContent onClose={() => setIsSidebarOpen(false)} />
+              </SheetContent>
+            </Sheet>
+          </div>
+        )}
+        
+        {/* Logo - always show or at least for consistency */}
+        <div className="flex items-center gap-2">
+          <img 
+            src="/logo.jpeg" 
+            alt="Royal Karahi Logo" 
+            className="h-9 w-9 object-contain"
+          />
+          <h1 className="text-xl font-bold text-primary tracking-tight">ROYAL KARAHI</h1>
+        </div>
       </div>
+
       <div className="flex items-center gap-4">
-        <span className="text-sm text-muted-foreground font-medium">
-          Logged in as {user?.username}
-        </span>
-        <Link href="/profile">
-          <Button variant="ghost" size="icon" title="Profile">
-            <UserCircle className="h-5 w-5" />
-          </Button>
-        </Link>
-        <Button variant="ghost" size="icon" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} title="Toggle Theme">
-          {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-        </Button>
-        <Button variant="ghost" size="icon" onClick={logout} title="Logout">
-          <LogOut className="h-5 w-5" />
-        </Button>
+        <div className="flex flex-col items-end text-right mr-2 sm:mr-0">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground leading-tight">
+            Logged in as <span className="text-foreground font-black">{user?.username}</span>
+          </span>
+          <span className={cn(
+            "text-xs font-black uppercase tracking-widest mt-0.5",
+            user?.role === 'admin' ? 'text-primary' : 
+            user?.role === 'manager' ? 'text-amber-600' : 
+            'text-blue-600'
+          )}>
+            {user?.role === 'user' ? 'Staff' : user?.role}
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          {!isAnyAdmin && (
+            <Button variant="ghost" size="icon" onClick={() => logout()} title="Logout">
+              <LogOut className="h-5 w-5" />
+            </Button>
+          )}
+        </div>
       </div>
     </header>
   );
