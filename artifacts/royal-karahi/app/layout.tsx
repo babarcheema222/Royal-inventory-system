@@ -9,6 +9,9 @@ export const metadata = {
   icons: {
     icon: "/logo.jpeg",
   },
+  verification: {
+    google: "google06fda052e1f40535",
+  },
 };
 
 export default function RootLayout({
@@ -20,11 +23,18 @@ export default function RootLayout({
     <html lang="en">
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+        <link
+          rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossOrigin="anonymous"
+        />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+          rel="stylesheet"
+        />
       </head>
-      <body className="antialiased selection:bg-primary/10 selection:text-primary">
 
+      <body className="antialiased selection:bg-primary/10 selection:text-primary">
         <SessionProvider>
           <TRPCProvider>
             {children}
