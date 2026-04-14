@@ -99,6 +99,20 @@ export default function Dashboard() {
       styles: { fontSize: 10, cellPadding: 3 }
     });
     
+    // Footer - Add to all pages
+    const pageCount = (doc as any).internal.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.setFontSize(9);
+      doc.setTextColor(120, 120, 120);
+      doc.text(
+        "(Designed and Manged by BABAR CHEEMA )", 
+        doc.internal.pageSize.width / 2, 
+        doc.internal.pageSize.height - 10, 
+        { align: "center" }
+      );
+    }
+    
     doc.save(`critical-stock-${format(new Date(), "yyyy-MM-dd")}.pdf`);
   };
 

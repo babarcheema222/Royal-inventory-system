@@ -176,6 +176,11 @@ export default function Reports() {
           </Table>
         </div>
       </Card>
+      
+      {/* Print Footer */}
+      <div className="hidden print:block text-center mt-8 pt-4 border-t border-gray-100 italic text-muted-foreground text-sm font-medium">
+        (Designed and Manged by BABAR CHEEMA )
+      </div>
     </div>
   );
 }
