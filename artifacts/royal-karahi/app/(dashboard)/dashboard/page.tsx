@@ -6,9 +6,11 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Package, AlertTriangle, Layers, Activity, TrendingUp, ArrowRight } from "lucide-react";
+import { Package, AlertTriangle, Layers, Activity, TrendingUp, ArrowRight, Download } from "lucide-react";
 import Link from "next/link";
 import { format, subDays, isSameDay } from "date-fns";
+import jsPDF from "jspdf";
+import "jspdf-autotable";
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import {
   ChartConfig,
@@ -59,6 +61,45 @@ export default function Dashboard() {
       };
     });
   }, [transactions]);
+
+  const downloadLowStockPDF = () => {
+    if (!lowStockItems) return;
+    
+    const doc = new jsPDF();
+    const dateStr = format(new Date(), "PPP p");
+    
+    // Header
+    doc.setFontSize(22);
+    doc.setTextColor(153, 27, 27); // Burgundy
+    doc.text("ROYAL KARAHI", 14, 20);
+    
+    doc.setFontSize(16);
+    doc.setTextColor(40, 40, 40);
+    doc.text("Critical Stock Inventory Report", 14, 30);
+    
+    doc.setFontSize(10);
+    doc.setTextColor(100, 100, 100);
+    doc.text(`Generated on: ${dateStr}`, 14, 38);
+    
+    // Table
+    const tableData = lowStockItems.map(item => [
+      item.name,
+      item.categoryName,
+      `${Number(item.currentStock).toFixed(2)} ${item.unit}`
+    ]);
+    
+    (doc as any).autoTable({
+      startY: 45,
+      head: [["Item Name", "Category", "Current Stock"]],
+      body: tableData,
+      headStyles: { fillColor: [153, 27, 27], fontStyle: 'bold' }, // Burgundy
+      alternateRowStyles: { fillColor: [249, 249, 249] },
+      margin: { top: 45 },
+      styles: { fontSize: 10, cellPadding: 3 }
+    });
+    
+    doc.save(`critical-stock-${format(new Date(), "yyyy-MM-dd")}.pdf`);
+  };
 
   return (
     <div className="p-4 md:p-8 space-y-8 max-w-7xl mx-auto">
@@ -192,6 +233,18 @@ export default function Dashboard() {
             <DialogDescription>
               The following items are below the safety threshold (10 units).
             </DialogDescription>
+            {lowStockItems && lowStockItems.length > 0 && (
+              <div className="absolute right-12 top-6">
+                <Button 
+                  onClick={downloadLowStockPDF}
+                  className="bg-primary hover:bg-primary/90 text-white font-bold flex items-center gap-2 h-9"
+                  size="sm"
+                >
+                  <Download className="w-4 h-4" />
+                  Download PDF
+                </Button>
+              </div>
+            )}
           </DialogHeader>
 
           <div className="max-h-[60vh] overflow-y-auto">
