@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { api } from "@/utils/trpc";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { FileText, Printer, BarChart3, CalendarDays } from "lucide-react";
-import { format, startOfDay, endOfDay, subDays, parseISO } from "date-fns";
+import { format, parseISO } from "date-fns";
 
 export default function Reports() {
   const todayStr = format(new Date(), "yyyy-MM-dd");
@@ -29,6 +29,16 @@ export default function Reports() {
     totalTransactions: transactions.length
   } : null;
 
+  const groupedTransactions = useMemo(() => {
+    if (!transactions) return null;
+    return transactions.reduce((acc, tx) => {
+      const cat = tx.categoryName || "Uncategorized";
+      if (!acc[cat]) acc[cat] = [];
+      acc[cat].push(tx);
+      return acc;
+    }, {} as Record<string, typeof transactions>);
+  }, [transactions]);
+
   const handlePrint = () => {
     window.print();
   };
@@ -45,25 +55,25 @@ export default function Reports() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 print:hidden">
         <div>
           <h1 className="text-3xl font-bold text-primary tracking-tight">System Reports</h1>
-          <p className="text-muted-foreground mt-1">Audit stock movements and inventory history.</p>
+          <p className="text-muted-foreground mt-1 text-sm font-bold uppercase">Audit stock movements and inventory history.</p>
         </div>
         <div className="flex gap-3">
-          <Button variant="outline" onClick={handlePrint} className="font-bold">
+          <Button variant="outline" onClick={handlePrint} className="font-bold border-2">
             <Printer className="h-4 w-4 mr-2" /> Print Report
           </Button>
         </div>
       </div>
 
-      <Card className="print:shadow-none print:border-none shadow-md text-gray-800">
+      <Card className="print:shadow-none print:border-none shadow-md text-gray-800 border-2 overflow-hidden">
         <CardHeader className="border-b bg-muted/30">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
-              <CardTitle className="flex items-center gap-2">
-                <FileText className="h-5 w-5 text-primary" />
+              <CardTitle className="flex items-center gap-2 text-2xl font-black uppercase tracking-tighter">
+                <FileText className="h-6 w-6 text-primary" />
                 Inventory Audit Log
               </CardTitle>
-              <CardDescription className="font-bold text-foreground">
-                Filtered from {format(parseISO(dateRange.from), "PPP")} to {format(parseISO(dateRange.to), "PPP")}
+              <CardDescription className="font-black text-foreground text-lg">
+                Filtered: {format(parseISO(dateRange.from), "PPP")} — {format(parseISO(dateRange.to), "PPP")}
               </CardDescription>
             </div>
             <div className="flex items-center gap-4 print:hidden bg-background p-2 rounded-lg border shadow-sm">
@@ -102,78 +112,95 @@ export default function Reports() {
           </div>
         </CardHeader>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x border-b">
-          <div className="p-6 space-y-1">
-            <p className="text-sm text-muted-foreground font-bold uppercase tracking-wider">Total In (Count)</p>
-            <p className="text-3xl font-black text-primary print:text-black">
+        {/* HORIZONTAL STATS - Forced side-by-side even in print */}
+        <div className="grid grid-cols-3 divide-x border-b bg-white print:grid-cols-3">
+          <div className="p-6 space-y-1 text-center sm:text-left">
+            <p className="text-xs text-muted-foreground font-black uppercase tracking-widest">Total In (Count)</p>
+            <p className="text-4xl font-black text-primary print:text-black">
               {summary?.totalIn || 0}
             </p>
           </div>
-          <div className="p-6 space-y-1">
-            <p className="text-sm text-muted-foreground font-bold uppercase tracking-wider">Total Out (Count)</p>
-            <p className="text-3xl font-black text-secondary print:text-black">
+          <div className="p-6 space-y-1 text-center sm:text-left border-x">
+            <p className="text-xs text-muted-foreground font-black uppercase tracking-widest">Total Out (Count)</p>
+            <p className="text-4xl font-black text-secondary print:text-black">
               {summary?.totalOut || 0}
             </p>
           </div>
-          <div className="p-6 space-y-1">
-            <p className="text-sm text-muted-foreground font-bold uppercase tracking-wider">Total Transactions</p>
-            <p className="text-3xl font-black text-foreground print:text-black">
+          <div className="p-6 space-y-1 text-center sm:text-left">
+            <p className="text-xs text-muted-foreground font-black uppercase tracking-widest">Total Txns</p>
+            <p className="text-4xl font-black text-foreground print:text-black">
               {isLoading ? "..." : summary?.totalTransactions || 0}
             </p>
           </div>
         </div>
 
         <div className="p-0 overflow-x-auto">
-          <Table>
-            <TableHeader className="bg-muted/50 print:bg-transparent text-gray-800">
-              <TableRow className="print:border-black/20">
-                <TableHead className="font-bold">Time</TableHead>
-                <TableHead className="font-bold">Category</TableHead>
-                <TableHead className="font-bold">Item</TableHead>
-                <TableHead className="font-bold">Type</TableHead>
-                <TableHead className="text-right font-bold">Quantity</TableHead>
-                <TableHead className="font-bold">User</TableHead>
-                <TableHead className="w-[30%] font-bold">Notes</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isLoading ? (
-                <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground animate-pulse">Loading report data...</TableCell>
-                </TableRow>
-              ) : transactions && transactions.length > 0 ? (
-                transactions.map((tx) => (
-                  <TableRow key={tx.id} className="print:border-black/10">
-                    <TableCell className="whitespace-nowrap font-medium text-xs">{format(new Date(tx.createdAt), "MM/dd HH:mm")}</TableCell>
-                    <TableCell className="text-xs uppercase font-bold text-muted-foreground">{tx.categoryName}</TableCell>
-                    <TableCell className="font-bold text-primary">{tx.subcategoryName}</TableCell>
-                    <TableCell>
-                      <span className={`font-black text-xs px-2 py-0.5 rounded-full ${tx.type === 'IN' ? 'bg-primary/10 text-primary print:text-black' : 'bg-secondary/10 text-secondary print:text-black'}`}>
-                        {tx.type}
-                      </span>
-                    </TableCell>
-                    <TableCell className="text-right font-mono font-black text-sm">
-                      {tx.type === "IN" ? "+" : "-"}{tx.quantity} {tx.unit}
-                    </TableCell>
-                    <TableCell className="text-xs font-bold">{tx.username}</TableCell>
-                    <TableCell className="text-xs text-muted-foreground print:text-black/70 font-medium">
-                      {tx.notes || "-"}
-                    </TableCell>
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={7} className="text-center py-12">
-                    <div className="flex flex-col items-center justify-center text-muted-foreground">
-                      <BarChart3 className="h-12 w-12 mb-4 opacity-20" />
-                      <p className="font-bold text-foreground">No transactions found for today.</p>
-                      <p className="text-sm font-medium">Any movements after 12:00 AM local time will appear here.</p>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
+          {isLoading ? (
+            <div className="text-center py-20 text-muted-foreground animate-pulse font-bold uppercase tracking-widest">
+              Compiling report data...
+            </div>
+          ) : groupedTransactions && Object.keys(groupedTransactions).length > 0 ? (
+            <div className="divide-y-4 divide-muted">
+              {Object.entries(groupedTransactions).sort(([a], [b]) => a.localeCompare(b)).map(([category, items]) => (
+                <div key={category} className="space-y-4 pt-8 pb-12 first:pt-4">
+                  <div className="px-6">
+                    <h3 className="text-xl font-black text-primary uppercase tracking-tighter border-l-4 border-primary pl-4 bg-primary/5 py-2">
+                      {category}
+                    </h3>
+                  </div>
+                  <div className="px-4 overflow-x-auto">
+                    <Table>
+                      <TableHeader className="bg-muted/30 print:bg-transparent text-gray-800">
+                        <TableRow className="border-b-2">
+                          <TableHead className="font-bold w-[15%]">Time</TableHead>
+                          <TableHead className="font-bold w-[25%]">Item Name</TableHead>
+                          <TableHead className="font-bold w-[10%]">Type</TableHead>
+                          <TableHead className="text-right font-bold w-[15%]">Quantity</TableHead>
+                          <TableHead className="font-bold w-[15%]">User</TableHead>
+                          <TableHead className="font-bold w-[20%]">Notes</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {items.map((tx) => (
+                          <TableRow key={tx.id} className="print:border-black/10 border-b hover:bg-muted/5 transition-colors">
+                            <TableCell className="whitespace-nowrap font-bold text-[11px] uppercase tracking-tighter">
+                              {format(new Date(tx.createdAt), "MM/dd HH:mm")}
+                            </TableCell>
+                            <TableCell className="font-black text-primary uppercase tracking-tight">
+                              {tx.subcategoryName}
+                            </TableCell>
+                            <TableCell>
+                              <span className={`font-black text-[10px] px-2 py-0.5 rounded-sm border ${tx.type === 'IN' ? 'bg-primary/10 border-primary/20 text-primary print:text-black' : 'bg-secondary/10 border-secondary/20 text-secondary print:text-black'}`}>
+                                {tx.type}
+                              </span>
+                            </TableCell>
+                            <TableCell className="text-right font-mono font-black text-sm">
+                              <span className={tx.type === "IN" ? "text-primary" : "text-secondary"}>
+                                {tx.type === "IN" ? "+" : "-"}{tx.quantity}
+                              </span>
+                              <span className="text-[10px] ml-1 text-muted-foreground uppercase">{tx.unit}</span>
+                            </TableCell>
+                            <TableCell className="text-xs font-black uppercase tracking-tighter text-muted-foreground">{tx.username}</TableCell>
+                            <TableCell className="text-[11px] text-muted-foreground print:text-black/70 font-bold leading-tight">
+                              {tx.notes || "-"}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-20">
+              <div className="flex flex-col items-center justify-center text-muted-foreground">
+                <BarChart3 className="h-16 w-16 mb-6 opacity-10" />
+                <p className="font-black text-xl text-foreground uppercase tracking-widest">No Data Recorded</p>
+                <p className="text-sm font-bold opacity-60">Any movements after 12:00 AM local time will appear here.</p>
+              </div>
+            </div>
+          )}
         </div>
       </Card>
       
