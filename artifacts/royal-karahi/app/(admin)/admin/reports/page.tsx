@@ -178,8 +178,8 @@ export default function Reports() {
       </Card>
       
       {/* Print Footer */}
-      <div className="hidden print:block text-center mt-8 pt-4 border-t border-gray-100 italic text-muted-foreground text-sm font-medium">
-        (Designed and Manged by BABAR CHEEMA )
+      <div className="hidden print:block text-center mt-8 pt-4 border-t border-gray-100 text-muted-foreground text-[10px] font-bold uppercase tracking-wider">
+        (Designed and Manged by <span className="text-blue-600">BABAR CHEEMA</span> )
       </div>
     </div>
   );

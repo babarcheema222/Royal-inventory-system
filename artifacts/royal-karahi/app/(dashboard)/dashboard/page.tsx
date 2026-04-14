@@ -103,14 +103,33 @@ export default function Dashboard() {
     const pageCount = (doc as any).internal.getNumberOfPages();
     for (let i = 1; i <= pageCount; i++) {
       doc.setPage(i);
+      doc.setFont("helvetica", "bold");
       doc.setFontSize(9);
+      
+      const centerX = doc.internal.pageSize.width / 2;
+      const bottomY = doc.internal.pageSize.height - 10;
+      
+      const text1 = "(Designed and Manged by ";
+      const text2 = "BABAR CHEEMA";
+      const text3 = " )";
+      
+      const width1 = doc.getTextWidth(text1);
+      const width2 = doc.getTextWidth(text2);
+      const width3 = doc.getTextWidth(text3);
+      const totalWidth = width1 + width2 + width3;
+      
+      let currentX = centerX - (totalWidth / 2);
+      
       doc.setTextColor(120, 120, 120);
-      doc.text(
-        "(Designed and Manged by BABAR CHEEMA )", 
-        doc.internal.pageSize.width / 2, 
-        doc.internal.pageSize.height - 10, 
-        { align: "center" }
-      );
+      doc.text(text1, currentX, bottomY);
+      currentX += width1;
+      
+      doc.setTextColor(37, 99, 235); // Professional Blue
+      doc.text(text2, currentX, bottomY);
+      currentX += width2;
+      
+      doc.setTextColor(120, 120, 120);
+      doc.text(text3, currentX, bottomY);
     }
     
     doc.save(`critical-stock-${format(new Date(), "yyyy-MM-dd")}.pdf`);
