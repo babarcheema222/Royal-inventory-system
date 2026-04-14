@@ -36,7 +36,7 @@ export default function RootLayout({
       </head>
 
       <body className="antialiased selection:bg-primary/10 selection:text-primary">
-        <SessionProvider>
+        <SessionProvider refetchInterval={5 * 60} refetchOnWindowFocus={false}>
           <InactivityDetector />
           <TRPCProvider>
             {children}

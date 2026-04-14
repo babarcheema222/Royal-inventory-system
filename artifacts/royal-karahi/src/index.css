@@ -154,6 +154,11 @@
 }
 
 @layer base {
+  html, body {
+    @apply overflow-x-hidden w-full;
+    position: relative;
+  }
+
   * {
     @apply border-border;
   }

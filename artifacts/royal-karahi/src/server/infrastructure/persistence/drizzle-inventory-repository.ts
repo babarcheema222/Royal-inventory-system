@@ -44,34 +44,31 @@ export class DrizzleInventoryRepository implements IInventoryRepository {
   }
 
   async getInventorySummary(): Promise<InventorySummary> {
-    const [totalItemsRow] = await this.db
-      .select({ count: sql<number>`count(*)::int` })
-      .from(schema.subcategoriesTable);
-
-    const [lowStockRow] = await this.db
-      .select({ count: sql<number>`count(*)::int` })
-      .from(schema.subcategoriesTable)
-      .where(lt(schema.subcategoriesTable.currentStock, 10));
-
-    const [totalCategoriesRow] = await this.db
-      .select({ count: sql<number>`count(*)::int` })
-      .from(schema.categoriesTable);
-
     const last24h = new Date(Date.now() - 24 * 60 * 60 * 1000);
-    const [todayTransactionsRow] = await this.db
-      .select({ count: sql<number>`count(*)::int` })
-      .from(schema.transactionsTable)
-      .where(gte(schema.transactionsTable.createdAt, last24h));
+
+    const [
+      totalItemsRow,
+      lowStockRow,
+      totalCategoriesRow,
+      todayTransactionsRow
+    ] = await Promise.all([
+      this.db.select({ count: sql<number>`count(*)::int` }).from(schema.subcategoriesTable),
+      this.db.select({ count: sql<number>`count(*)::int` }).from(schema.subcategoriesTable).where(lt(schema.subcategoriesTable.currentStock, 10)),
+      this.db.select({ count: sql<number>`count(*)::int` }).from(schema.categoriesTable),
+      this.db.select({ count: sql<number>`count(*)::int` }).from(schema.transactionsTable).where(gte(schema.transactionsTable.createdAt, last24h))
+    ]);
 
     return {
-      totalItems: totalItemsRow?.count ?? 0,
-      lowStockCount: lowStockRow?.count ?? 0,
-      totalCategories: totalCategoriesRow?.count ?? 0,
-      totalTransactionsToday: todayTransactionsRow?.count ?? 0,
+      totalItems: totalItemsRow[0]?.count ?? 0,
+      lowStockCount: lowStockRow[0]?.count ?? 0,
+      totalCategories: totalCategoriesRow[0]?.count ?? 0,
+      totalTransactionsToday: todayTransactionsRow[0]?.count ?? 0,
     };
   }
 
-  async listInventory(search?: string): Promise<(Subcategory & { categoryName: string; unit: string; isLowStock: boolean })[]> {
+  async listInventory(search?: string, limit: number = 50, offset: number = 0): Promise<(Subcategory & { categoryName: string; unit: string; isLowStock: boolean })[]> {
+    const s = search ? `%${search.toLowerCase()}%` : null;
+
     const result = await this.db
       .select({
         id: schema.subcategoriesTable.id,
@@ -84,18 +81,12 @@ export class DrizzleInventoryRepository implements IInventoryRepository {
       })
       .from(schema.subcategoriesTable)
       .innerJoin(schema.categoriesTable, eq(schema.subcategoriesTable.categoryId, schema.categoriesTable.id))
-      .orderBy(schema.categoriesTable.name, schema.subcategoriesTable.name);
+      .where(s ? sql`LOWER(${schema.subcategoriesTable.name}) LIKE ${s} OR LOWER(${schema.categoriesTable.name}) LIKE ${s}` : undefined)
+      .orderBy(schema.categoriesTable.name, schema.subcategoriesTable.name)
+      .limit(limit)
+      .offset(offset);
 
-    let filtered = result;
-    if (search) {
-      const s = search.toLowerCase();
-      filtered = result.filter(item => 
-        item.name.toLowerCase().includes(s) || 
-        item.categoryName.toLowerCase().includes(s)
-      );
-    }
-
-    return filtered.map(item => ({
+    return result.map(item => ({
       ...item,
       isLowStock: item.currentStock < 10
     }));
@@ -123,7 +114,7 @@ export class DrizzleInventoryRepository implements IInventoryRepository {
     }));
   }
 
-  async getTransactions(from: Date, to: Date): Promise<(Transaction & { subcategoryName: string; categoryName: string; unit: string; username: string })[]> {
+  async getTransactions(from: Date, to: Date, limit: number = 100, offset: number = 0): Promise<(Transaction & { subcategoryName: string; categoryName: string; unit: string; username: string })[]> {
     return this.db
       .select({
         id: schema.transactionsTable.id,
@@ -143,7 +134,9 @@ export class DrizzleInventoryRepository implements IInventoryRepository {
       .innerJoin(schema.categoriesTable, eq(schema.subcategoriesTable.categoryId, schema.categoriesTable.id))
       .innerJoin(schema.usersTable, eq(schema.transactionsTable.userId, schema.usersTable.id))
       .where(and(gte(schema.transactionsTable.createdAt, from), lte(schema.transactionsTable.createdAt, to)))
-      .orderBy(desc(schema.transactionsTable.createdAt));
+      .orderBy(desc(schema.transactionsTable.createdAt))
+      .limit(limit)
+      .offset(offset);
   }
 
   async createTransaction(data: { subcategoryId: number; type: "IN" | "OUT"; quantity: number; notes?: string | null; userId: number }): Promise<Transaction> {

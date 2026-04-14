@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Trash2, UserPlus, Shield, User, Eye, EyeOff, LayoutDashboard, KeyRound, Pencil } from "lucide-react";
+import { Trash2, UserPlus, Shield, User, LayoutDashboard, Key, Eye, EyeOff, PencilLine } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { toast } from "sonner";
@@ -25,15 +25,6 @@ export default function Users() {
   const [password, setPassword] = useState("");
   const [role, setRole] = useState<"admin" | "user" | "manager">("user");
   const [showFormPassword, setShowFormPassword] = useState(false);
-
-  const [visiblePasswords, setVisiblePasswords] = useState<Record<number, boolean>>({});
-
-  const togglePasswordVisibility = (id: number) => {
-    setVisiblePasswords(prev => ({
-      ...prev,
-      [id]: !prev[id]
-    }));
-  };
 
   if (authLoading) {
     return <div className="p-8 text-center animate-pulse">Verifying permissions...</div>;
@@ -56,6 +47,7 @@ export default function Users() {
       setUsername("");
       setPassword("");
       setRole("user");
+      setShowFormPassword(false);
     },
     onError: (err) => {
       toast.error(err.message || "Failed to create user", { duration: 1500 });
@@ -122,7 +114,10 @@ export default function Users() {
                 <Label htmlFor="username" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Username</Label>
                 <Input 
                   id="username"
+                  name="username"
+                  autoComplete="username"
                   required
+                  aria-required="true"
                   placeholder="e.g. jdoe"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
@@ -136,8 +131,11 @@ export default function Users() {
                 <div className="relative">
                   <Input 
                     id="password"
+                    name="password"
                     type={showFormPassword ? "text" : "password"}
+                    autoComplete="new-password"
                     required
+                    aria-required="true"
                     placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
@@ -157,7 +155,7 @@ export default function Users() {
               <div className="space-y-2">
                 <Label htmlFor="role" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Access Level</Label>
                 <Select value={role} onValueChange={(v: "admin" | "user" | "manager") => setRole(v)} disabled={createUserMutation.isPending}>
-                  <SelectTrigger id="role" className="font-medium">
+                  <SelectTrigger id="role" name="role" className="font-medium" aria-label="Access Level">
                     <SelectValue placeholder="Select role" />
                   </SelectTrigger>
                   <SelectContent>
@@ -185,7 +183,6 @@ export default function Users() {
                 <TableRow>
                   <TableHead className="font-bold">Username</TableHead>
                   <TableHead className="font-bold">Role</TableHead>
-                  <TableHead className="font-bold">Login Password</TableHead>
                   <TableHead className="font-bold">Created Date</TableHead>
                   <TableHead className="text-right font-bold">Actions</TableHead>
                 </TableRow>
@@ -193,11 +190,11 @@ export default function Users() {
               <TableBody>
                 {isLoading ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center py-12 text-muted-foreground animate-pulse">Retrieving staff records...</TableCell>
+                    <TableCell colSpan={4} className="text-center py-12 text-muted-foreground animate-pulse">Retrieving staff records...</TableCell>
                   </TableRow>
                 ) : users?.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center py-12 text-muted-foreground font-medium">No personnel records found.</TableCell>
+                    <TableCell colSpan={4} className="text-center py-12 text-muted-foreground font-medium">No personnel records found.</TableCell>
                   </TableRow>
                 ) : (
                   users?.map((u) => (
@@ -212,20 +209,6 @@ export default function Users() {
                           {u.role === 'user' ? 'Staff' : u.role}
                         </Badge>
                       </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <code className="bg-muted px-2 py-0.5 rounded text-xs font-mono font-bold">
-                            {visiblePasswords[u.id] ? (u.passwordPlain || "—") : "••••••••"}
-                          </code>
-                          <button 
-                            onClick={() => togglePasswordVisibility(u.id)}
-                            className="bg-muted p-1 rounded hover:bg-muted-foreground/10 transition-colors"
-                            title={visiblePasswords[u.id] ? "Hide Password" : "Show Password"}
-                          >
-                            {visiblePasswords[u.id] ? <EyeOff className="h-3.5 w-3.5 text-muted-foreground" /> : <Eye className="h-3.5 w-3.5 text-muted-foreground" />}
-                          </button>
-                        </div>
-                      </TableCell>
                       <TableCell className="text-muted-foreground text-sm font-medium">
                         {format(new Date(u.createdAt), "MMM d, yyyy")}
                       </TableCell>
@@ -237,6 +220,7 @@ export default function Users() {
                           onClick={() => handleDeleteUser(u.id)}
                           disabled={deleteUserMutation.isPending || String(u.id) === currentUser?.id}
                           title={String(u.id) === currentUser?.id ? "Cannot delete yourself" : "Delete User"}
+                          aria-label={String(u.id) === currentUser?.id ? "Cannot delete yourself" : "Delete User"}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>

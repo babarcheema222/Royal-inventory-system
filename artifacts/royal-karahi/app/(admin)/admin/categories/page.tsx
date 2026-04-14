@@ -98,9 +98,13 @@ export default function Categories() {
               <Label htmlFor="catName" className="mb-2 block">Category Name</Label>
               <Input
                 id="catName"
+                name="categoryName"
+                autoComplete="off"
                 placeholder="e.g., Meats, Vegetables"
                 value={newCatName}
                 onChange={(e) => setNewCatName(e.target.value)}
+                required
+                aria-required="true"
                 disabled={createCatMutation.isPending}
               />
             </div>
@@ -108,6 +112,7 @@ export default function Categories() {
               <Label htmlFor="catUnit" className="mb-2 block">Measurement Unit</Label>
               <select
                 id="catUnit"
+                name="categoryUnit"
                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 value={newCatUnit}
                 onChange={(e) => setNewCatUnit(e.target.value)}
@@ -118,7 +123,7 @@ export default function Categories() {
                 ))}
               </select>
             </div>
-            <Button type="submit" className="md:mt-8" disabled={createCatMutation.isPending || !newCatName.trim()}>
+            <Button type="submit" className="md:mt-8" disabled={createCatMutation.isPending || !newCatName.trim()} aria-label="Add Category">
               <Plus className="h-4 w-4 mr-2" /> Add Category
             </Button>
           </form>
@@ -133,7 +138,7 @@ export default function Categories() {
             No categories defined yet. Create one above to get started.
           </div>
         ) : (
-          <div className="grid gap-6 md:grid-cols-2">
+          <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
             {categories?.map(category => (
               <Card key={category.id} className="shadow-sm flex flex-col text-gray-800">
                 <CardHeader className="bg-muted/30 border-b flex flex-row items-center justify-between pb-4">
@@ -141,16 +146,17 @@ export default function Categories() {
                     <CardTitle className="text-xl">{category.name}</CardTitle>
                     <p className="text-xs font-bold text-primary uppercase tracking-tighter">Unit: {(category as any).unit}</p>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="text-destructive hover:bg-destructive/10"
-                    onClick={() => handleDeleteCategory(category.id)}
-                    disabled={deleteCatMutation.isPending}
-                    title="Delete Category"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="text-destructive hover:bg-destructive/10"
+                      onClick={() => handleDeleteCategory(category.id)}
+                      disabled={deleteCatMutation.isPending}
+                      title="Delete Category"
+                      aria-label="Delete Category"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                 </CardHeader>
                 <CardContent className="pt-6 flex-1 flex flex-col">
                   <div className="space-y-2 mb-6 flex-1">
@@ -158,15 +164,17 @@ export default function Categories() {
                       (category as any).subcategories.map((sub: any) => (
                         <div key={sub.id} className="flex items-center justify-between p-2 rounded-md border bg-card hover:bg-muted/10 transition-colors">
                           <span className="font-medium text-sm">{sub.name} <span className="text-[10px] text-muted-foreground uppercase">({(category as any).unit})</span></span>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                            onClick={() => handleDeleteSubcategory(sub.id)}
-                            disabled={deleteSubMutation.isPending}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                              onClick={() => handleDeleteSubcategory(sub.id)}
+                              disabled={deleteSubMutation.isPending}
+                              aria-label="Delete Item"
+                              title="Delete Item"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
                         </div>
                       ))
                     ) : (
@@ -176,14 +184,20 @@ export default function Categories() {
 
                   <form onSubmit={(e) => handleCreateSubcategory(e, category.id)} className="mt-auto">
                     <div className="flex gap-2">
+                      <Label htmlFor={`subName-${category.id}`} className="sr-only">New Item Name</Label>
                       <Input
+                        id={`subName-${category.id}`}
+                        name="subcategoryName"
+                        autoComplete="off"
                         placeholder={`New item name...`}
                         className="flex-1"
                         value={newSubNames[category.id] || ""}
                         onChange={(e) => setNewSubNames(prev => ({ ...prev, [category.id]: e.target.value }))}
                         disabled={createSubMutation.isPending}
+                        required
+                        aria-required="true"
                       />
-                      <Button type="submit" variant="secondary" size="icon" disabled={!newSubNames[category.id]?.trim() || createSubMutation.isPending}>
+                      <Button type="submit" variant="secondary" size="icon" disabled={!newSubNames[category.id]?.trim() || createSubMutation.isPending} aria-label="Add Item" title="Add Item">
                         <Plus className="h-4 w-4" />
                       </Button>
                     </div>

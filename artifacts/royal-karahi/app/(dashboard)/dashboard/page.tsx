@@ -8,10 +8,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Package, AlertTriangle, Layers, Activity, TrendingUp, ArrowRight, Download } from "lucide-react";
+import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { format, subDays, isSameDay } from "date-fns";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
+import { generatePDF } from "@/utils/pdf-generator";
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import {
   ChartConfig,
@@ -31,12 +31,24 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
+const Skeleton = ({ className }: { className?: string }) => (
+  <div className={cn("animate-pulse bg-muted rounded-md", className)} />
+);
+
 export default function Dashboard() {
-  const { data: summary, isLoading: loadingSummary } = api.inventory.getSummary.useQuery();
-  const { data: transactions, isLoading: loadingTransactions } = api.inventory.getRecentTransactions.useQuery();
+  const { data: summary, isLoading: loadingSummary } = api.inventory.getSummary.useQuery(undefined, {
+    staleTime: 60000 // Cache summary for 1 min (server-side also has 60s cache)
+  });
+  
+  // Phase 2: Heavier data loaded lazily/non-blocking
+  const { data: transactions, isLoading: loadingTransactions } = api.inventory.getRecentTransactions.useQuery(undefined, {
+    staleTime: 15000 
+  });
+  
   const [isLowStockModalOpen, setIsLowStockModalOpen] = useState(false);
   const { data: lowStockItems, isLoading: loadingLowStock } = api.inventory.getLowStock.useQuery(undefined, {
-    enabled: isLowStockModalOpen
+    enabled: isLowStockModalOpen,
+    staleTime: 10000
   });
 
   const { refetch: fetchAllStock } = api.inventory.list.useQuery({}, { enabled: false });
@@ -45,108 +57,24 @@ export default function Dashboard() {
     const { data: stockItems } = await fetchAllStock();
     if (!stockItems) return;
 
-    // Group by Category
-    const grouped = stockItems.reduce((acc, item) => {
-      const cat = item.categoryName || "Uncategorized";
-      if (!acc[cat]) acc[cat] = [];
-      acc[cat].push(item);
-      return acc;
-    }, {} as Record<string, typeof stockItems>);
-
-    const doc = new jsPDF();
-    const dateStr = format(new Date(), "PPP p");
-
-    // Header logic
-    doc.setFontSize(22);
-    doc.setTextColor(153, 27, 27); // Burgundy
-    doc.text("ROYAL KARAHI", 14, 20);
-
-    doc.setFontSize(16);
-    doc.setTextColor(40, 40, 40);
-    doc.text("Current Stock Inventory Report", 14, 30);
-
-    doc.setFontSize(10);
-    doc.setTextColor(100, 100, 100);
-    doc.text(`Generated on: ${dateStr}`, 14, 38);
-
-    let currentY = 50;
-
-    // Categories Loop
-    Object.entries(grouped)
-      .sort(([a], [b]) => a.localeCompare(b))
-      .forEach(([category, items]) => {
-        // Page break check
-        if (currentY > 250) {
-          doc.addPage();
-          currentY = 20;
-        }
-
-        // Highlighted Category Header
-        doc.setFillColor(153, 27, 27); // Burgundy
-        doc.rect(14, currentY, 182, 8, 'F');
-        doc.setFontSize(11);
-        doc.setTextColor(255, 255, 255);
-        doc.setFont("helvetica", "bold");
-        doc.text(category.toUpperCase(), 18, currentY + 6);
-
-        currentY += 8;
-
-        const tableData = items
-          .sort((a, b) => (a.name || "").localeCompare(b.name || ""))
-          .map(item => [
-            item.name,
-            `${Number(item.currentStock).toFixed(2)} ${item.unit}`
-          ]);
-
-        autoTable(doc, {
-          startY: currentY,
-          head: [["Item Name", "Current Stock (Remaining)"]],
-          body: tableData,
-          headStyles: { fillColor: [240, 240, 240], textColor: [40, 40, 40], fontStyle: 'bold' },
-          alternateRowStyles: { fillColor: [252, 252, 252] },
-          styles: { fontSize: 10, cellPadding: 3 },
-          margin: { left: 14, right: 14 },
-          didDrawPage: (data) => {
-             // currentY is updated by finalY below
-          }
-        });
-
-        currentY = (doc as any).lastAutoTable.finalY + 12;
-      });
-
-    // Footer - Only on the last page
-    const lastPage = (doc as any).internal.getNumberOfPages();
-    doc.setPage(lastPage);
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(9);
-
-    const centerX = doc.internal.pageSize.width / 2;
-    const bottomY = doc.internal.pageSize.height - 10;
-
-    const text1 = "(Designed and Manged by ";
-    const text2 = "BABAR CHEEMA";
-    const text3 = " )";
-
-    const width1 = doc.getTextWidth(text1);
-    const width2 = doc.getTextWidth(text2);
-    const width3 = doc.getTextWidth(text3);
-    const totalWidth = width1 + width2 + width3;
-
-    let currentX = centerX - (totalWidth / 2);
-
-    doc.setTextColor(120, 120, 120);
-    doc.text(text1, currentX, bottomY);
-    currentX += width1;
-
-    doc.setTextColor(0, 0, 0); // Bold Black
-    doc.text(text2, currentX, bottomY);
-    currentX += width2;
-
-    doc.setTextColor(120, 120, 120);
-    doc.text(text3, currentX, bottomY);
-
     const dateFormatted = format(new Date(), "yyyy-MM-dd");
-    doc.save(`royal-karahi-remaining-stock-${dateFormatted}.pdf`);
+    const head = [["Item Name", "Category", "Current Stock (Remaining)"]];
+    const body = stockItems
+      .sort((a, b) => (a.categoryName || "").localeCompare(b.categoryName || ""))
+      .map(item => [
+        item.name,
+        item.categoryName,
+        `${Number(item.currentStock).toFixed(2)} ${item.unit}`
+      ]);
+
+    generatePDF({
+      title: "Current Stock Inventory Report",
+      subtitle: "Comprehensive list of all inventory items and quantities.",
+      fileName: `royal-karahi-remaining-stock-${dateFormatted}.pdf`,
+      head,
+      body,
+      showSignature: true
+    });
   };
 
   const chartData = useMemo(() => {
@@ -176,72 +104,22 @@ export default function Dashboard() {
   const downloadLowStockPDF = () => {
     if (!lowStockItems) return;
 
-    const doc = new jsPDF();
-    const dateStr = format(new Date(), "PPP p");
-
-    // Header
-    doc.setFontSize(22);
-    doc.setTextColor(153, 27, 27); // Burgundy
-    doc.text("ROYAL KARAHI", 14, 20);
-
-    doc.setFontSize(16);
-    doc.setTextColor(40, 40, 40);
-    doc.text("Critical Stock Inventory Report", 14, 30);
-
-    doc.setFontSize(10);
-    doc.setTextColor(100, 100, 100);
-    doc.text(`Generated on: ${dateStr}`, 14, 38);
-
-    // Table
-    const tableData = lowStockItems.map(item => [
+    const dateFormatted = format(new Date(), "yyyy-MM-dd");
+    const head = [["Item Name", "Category", "Current Stock"]];
+    const body = lowStockItems.map(item => [
       item.name,
       item.categoryName,
       `${Number(item.currentStock).toFixed(2)} ${item.unit}`
     ]);
 
-    autoTable(doc, {
-      startY: 45,
-      head: [["Item Name", "Category", "Current Stock"]],
-      body: tableData,
-      headStyles: { fillColor: [153, 27, 27], fontStyle: 'bold' }, // Burgundy
-      alternateRowStyles: { fillColor: [249, 249, 249] },
-      margin: { top: 45 },
-      styles: { fontSize: 10, cellPadding: 3 }
+    generatePDF({
+      title: "Critical Stock Inventory Report",
+      subtitle: "Items currently below the safety threshold (10 units).",
+      fileName: `royal-karahi-critical-stock-${dateFormatted}.pdf`,
+      head,
+      body,
+      showSignature: true
     });
-
-    // Footer - Only on the last page
-    const lastPage = (doc as any).internal.getNumberOfPages();
-    doc.setPage(lastPage);
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(9);
-
-    const centerX = doc.internal.pageSize.width / 2;
-    const bottomY = doc.internal.pageSize.height - 10;
-
-    const text1 = "(Designed and Manged by ";
-    const text2 = "BABAR CHEEMA";
-    const text3 = " )";
-
-    const width1 = doc.getTextWidth(text1);
-    const width2 = doc.getTextWidth(text2);
-    const width3 = doc.getTextWidth(text3);
-    const totalWidth = width1 + width2 + width3;
-
-    let currentX = centerX - (totalWidth / 2);
-
-    doc.setTextColor(120, 120, 120);
-    doc.text(text1, currentX, bottomY);
-    currentX += width1;
-
-    doc.setTextColor(0, 0, 0); // Bold Black
-    doc.text(text2, currentX, bottomY);
-    currentX += width2;
-
-    doc.setTextColor(120, 120, 120);
-    doc.text(text3, currentX, bottomY);
-
-    const dateFormatted = format(new Date(), "yyyy-MM-dd");
-    doc.save(`royal-karahi-critical-stock-${dateFormatted}.pdf`);
   };
 
   return (
@@ -257,36 +135,44 @@ export default function Dashboard() {
 
       {/* CARDS */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="shadow-lg border-none bg-gradient-to-br from-card to-muted/30">
-          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0 text-gray-800">
-            <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Total Assets</CardTitle>
-            <div className="bg-primary/10 p-2 rounded-lg">
-              <Package className="w-4 h-4 text-primary" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">{loadingSummary ? "..." : summary?.totalItems || 0}</div>
-            <p className="text-xs text-muted-foreground mt-1">Unique stock units trackable</p>
-          </CardContent>
-        </Card>
+          <Card className="shadow-lg border-none bg-gradient-to-br from-card to-muted/30">
+            <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0 text-gray-800">
+              <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Total Assets</CardTitle>
+              <div className="bg-primary/10 p-2 rounded-lg">
+                <Package className="w-4 h-4 text-primary" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              {loadingSummary ? (
+                <Skeleton className="h-8 w-16 mb-2" />
+              ) : (
+                <div className="text-3xl font-bold">{summary?.totalItems || 0}</div>
+              )}
+              <p className="text-xs text-muted-foreground mt-1">Unique stock units trackable</p>
+            </CardContent>
+          </Card>
 
-        <Card
-          className="shadow-lg border-none bg-gradient-to-br from-card to-destructive/5 text-gray-800 cursor-pointer hover:scale-[1.02] transition-transform group"
-          onClick={() => setIsLowStockModalOpen(true)}
-        >
-          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground group-hover:text-destructive transition-colors">Critical Stock</CardTitle>
-            <div className="bg-destructive/10 p-2 rounded-lg group-hover:bg-destructive/20 transition-colors">
-              <AlertTriangle className="w-4 h-4 text-destructive" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-destructive font-bold">{loadingSummary ? "..." : summary?.lowStockCount || 0}</div>
-            <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-              Items requiring attention <ArrowRight className="w-3 h-3" />
-            </p>
-          </CardContent>
-        </Card>
+          <Card
+            className="shadow-lg border-none bg-gradient-to-br from-card to-destructive/5 text-gray-800 cursor-pointer hover:scale-[1.02] transition-transform group"
+            onClick={() => setIsLowStockModalOpen(true)}
+          >
+            <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+              <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground group-hover:text-destructive transition-colors">Critical Stock</CardTitle>
+              <div className="bg-destructive/10 p-2 rounded-lg group-hover:bg-destructive/20 transition-colors">
+                <AlertTriangle className="w-4 h-4 text-destructive" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              {loadingSummary ? (
+                <Skeleton className="h-8 w-16 mb-2" />
+              ) : (
+                <div className="text-3xl font-bold text-destructive font-bold">{summary?.lowStockCount || 0}</div>
+              )}
+              <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                Items requiring attention <ArrowRight className="w-3 h-3" />
+              </p>
+            </CardContent>
+          </Card>
 
         <Card className="shadow-lg border-none bg-gradient-to-br from-card to-secondary/5 text-gray-800">
           <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
@@ -313,18 +199,22 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        <Card className="shadow-lg border-none bg-gradient-to-br from-card to-accent/5 text-gray-800">
-          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Daily History</CardTitle>
-            <div className="bg-accent/10 p-2 rounded-lg">
-              <Activity className="w-4 h-4 text-accent-foreground" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">{loadingSummary ? "..." : summary?.totalTransactionsToday || 0}</div>
-            <p className="text-xs text-muted-foreground mt-1">Transactions in last 24 hours</p>
-          </CardContent>
-        </Card>
+          <Card className="shadow-lg border-none bg-gradient-to-br from-card to-accent/5 text-gray-800">
+            <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+              <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Daily History</CardTitle>
+              <div className="bg-accent/10 p-2 rounded-lg">
+                <Activity className="w-4 h-4 text-accent-foreground" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              {loadingSummary ? (
+                <Skeleton className="h-8 w-16 mb-2" />
+              ) : (
+                <div className="text-3xl font-bold">{summary?.totalTransactionsToday || 0}</div>
+              )}
+              <p className="text-xs text-muted-foreground mt-1">Transactions in last 24 hours</p>
+            </CardContent>
+          </Card>
       </div>
 
       {/* CHART */}
@@ -333,17 +223,24 @@ export default function Dashboard() {
           <CardTitle className="text-xl font-bold">Inventory Activity</CardTitle>
           <CardDescription>Last 7 days</CardDescription>
         </CardHeader>
-        <CardContent className="px-2 md:px-6 pb-6">
-          <ChartContainer config={chartConfig} className="h-[300px] w-full">
-            <AreaChart data={chartData}>
-              <CartesianGrid vertical={false} strokeDasharray="3 3" opacity={0.3} />
-              <XAxis dataKey="date" />
-              <YAxis hide />
-              <ChartTooltip content={<ChartTooltipContent indicator="dot" />} />
-              <Area type="monotone" dataKey="out" stroke={chartConfig.out.color} fill={chartConfig.out.color} fillOpacity={0.1} />
-              <Area type="monotone" dataKey="in" stroke={chartConfig.in.color} fill={chartConfig.in.color} fillOpacity={0.1} />
-            </AreaChart>
-          </ChartContainer>
+        <CardContent className="px-2 md:px-6 pb-6 min-h-[300px] flex items-center justify-center">
+          {loadingTransactions ? (
+            <div className="w-full h-full flex flex-col items-center justify-center gap-4 text-muted-foreground">
+              <Skeleton className="h-[250px] w-full" />
+              <p className="text-sm animate-pulse">Calculating trends...</p>
+            </div>
+          ) : (
+            <ChartContainer config={chartConfig} className="h-[300px] w-full">
+              <AreaChart data={chartData}>
+                <CartesianGrid vertical={false} strokeDasharray="3 3" opacity={0.3} />
+                <XAxis dataKey="date" />
+                <YAxis hide />
+                <ChartTooltip content={<ChartTooltipContent indicator="dot" />} />
+                <Area type="monotone" dataKey="out" stroke={chartConfig.out.color} fill={chartConfig.out.color} fillOpacity={0.1} />
+                <Area type="monotone" dataKey="in" stroke={chartConfig.in.color} fill={chartConfig.in.color} fillOpacity={0.1} />
+              </AreaChart>
+            </ChartContainer>
+          )}
         </CardContent>
       </Card>
 
@@ -354,7 +251,20 @@ export default function Dashboard() {
         </CardHeader>
         <CardContent className="pt-6">
           {loadingTransactions ? (
-            <div className="text-sm text-muted-foreground animate-pulse">Retrieving audit log...</div>
+            <div className="space-y-4">
+              {[...Array(5)].map((_, i) => (
+                <div key={i} className="flex items-center justify-between p-3 rounded-lg bg-muted/10">
+                  <div className="flex flex-col gap-2">
+                    <Skeleton className="h-4 w-32" />
+                    <Skeleton className="h-3 w-24" />
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Skeleton className="h-6 w-12" />
+                    <Skeleton className="h-5 w-16" />
+                  </div>
+                </div>
+              ))}
+            </div>
           ) : transactions && transactions.length > 0 ? (
             <div className="space-y-4">
               {transactions.map(tx => (

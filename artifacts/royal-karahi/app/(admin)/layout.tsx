@@ -40,11 +40,11 @@ export default function AdminLayout({
   const isAnyAdmin = isAdmin || isManager;
 
   return (
-    <div className="flex h-[100dvh] w-full bg-background overflow-hidden">
+    <div className="flex h-[100dvh] w-full bg-background overflow-hidden relative">
       {isAnyAdmin ? <Sidebar /> : null}
-      <div className="flex flex-col flex-1 min-w-0">
+      <div className="flex flex-col flex-1 min-w-0 max-w-full">
         <TopNav />
-        <main className="flex-1 overflow-y-auto print:overflow-visible">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden print:overflow-visible relative">
           {children}
         </main>
       </div>

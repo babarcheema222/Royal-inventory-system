@@ -13,9 +13,15 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
+import { useDebounce } from "@/hooks/use-debounce";
+
 export default function Inventory() {
   const [search, setSearch] = useState("");
-  const { data: items, isLoading, refetch } = api.inventory.list.useQuery({ search: search || undefined });
+  const debouncedSearch = useDebounce(search, 300);
+  const { data: items, isLoading, refetch } = api.inventory.list.useQuery(
+    { search: debouncedSearch || undefined },
+    { staleTime: 5000 } // Cache for 5s
+  );
   const [txDialog, setTxDialog] = useState<{ isOpen: boolean; subcategoryId: number; name: string; type: "IN" | "OUT"; unit: string } | null>(null);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
 
@@ -86,7 +92,11 @@ export default function Inventory() {
         </div>
         <div className="relative w-full sm:w-72">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Label htmlFor="inventory-search" className="sr-only">Search items</Label>
           <Input 
+            id="inventory-search"
+            name="search"
+            autoComplete="off"
             placeholder="Search items..." 
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -112,6 +122,8 @@ export default function Inventory() {
               <div key={category} className="group border rounded-xl overflow-hidden bg-card shadow-sm hover:shadow-md transition-all duration-300">
                 <button 
                   onClick={() => toggleCategory(category)}
+                  aria-expanded={isExpanded}
+                  aria-label={`Toggle ${category} category`}
                   className={cn(
                     "w-full flex items-center justify-between p-4 md:p-5 text-left transition-colors",
                     isExpanded ? "bg-primary/5" : "hover:bg-muted/50"
@@ -174,22 +186,26 @@ export default function Inventory() {
                                 <div className="mt-auto pt-4 border-t border-primary/5">
                                   <div className="bg-muted/30 rounded-lg p-2 border border-border/50 shadow-inner">
                                     <div className="grid grid-cols-2 gap-2">
-                                      <Button 
-                                        variant="outline" 
-                                        size="sm"
-                                        className="w-full border-destructive/20 text-destructive hover:bg-destructive hover:text-destructive-foreground transition-all font-bold text-[10px] h-8"
-                                        onClick={() => setTxDialog({ isOpen: true, subcategoryId: item.id, name: item.name, type: "OUT", unit: item.unit })}
-                                      >
-                                        <Minus className="mr-1 h-3 w-3" /> Usage
-                                      </Button>
-                                      <Button 
-                                        variant="default" 
-                                        size="sm"
-                                        className="w-full bg-primary hover:bg-primary/90 shadow-sm font-bold text-[10px] h-8"
-                                        onClick={() => setTxDialog({ isOpen: true, subcategoryId: item.id, name: item.name, type: "IN", unit: item.unit })}
-                                      >
-                                        <Plus className="mr-1 h-3 w-3" /> Restock
-                                      </Button>
+                                        <Button 
+                                          variant="outline" 
+                                          size="sm"
+                                          className="w-full border-destructive/20 text-destructive hover:bg-destructive hover:text-destructive-foreground transition-all font-bold text-[10px] h-8"
+                                          onClick={() => setTxDialog({ isOpen: true, subcategoryId: item.id, name: item.name, type: "OUT", unit: item.unit })}
+                                          aria-label={`Record Usage for ${item.name}`}
+                                          title={`Record Usage for ${item.name}`}
+                                        >
+                                          <Minus className="mr-1 h-3 w-3" /> Usage
+                                        </Button>
+                                        <Button 
+                                          variant="default" 
+                                          size="sm"
+                                          className="w-full bg-primary hover:bg-primary/90 shadow-sm font-bold text-[10px] h-8"
+                                          onClick={() => setTxDialog({ isOpen: true, subcategoryId: item.id, name: item.name, type: "IN", unit: item.unit })}
+                                          aria-label={`Restock ${item.name}`}
+                                          title={`Restock ${item.name}`}
+                                        >
+                                          <Plus className="mr-1 h-3 w-3" /> Restock
+                                        </Button>
                                     </div>
                                   </div>
                                 </div>
@@ -235,11 +251,14 @@ export default function Inventory() {
                 )}
                 <Input
                   id="quantity"
+                  name="quantity"
                   type="number"
+                  autoComplete="off"
                   min="0.01"
                   step="any"
                   placeholder="0"
                   required
+                  aria-required="true"
                   value={quantity}
                   onChange={(e) => setQuantity(e.target.value)}
                   autoFocus
@@ -249,6 +268,8 @@ export default function Inventory() {
                 <Label htmlFor="notes">Notes (Optional)</Label>
                 <Textarea
                   id="notes"
+                  name="notes"
+                  autoComplete="off"
                   placeholder="E.g., Supplier name, reason for usage..."
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}

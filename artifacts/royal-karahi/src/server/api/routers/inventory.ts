@@ -14,9 +14,13 @@ export const inventoryRouter = createTRPCRouter({
   }),
 
   list: protectedProcedure
-    .input(z.object({ search: z.string().optional() }))
+    .input(z.object({ 
+      search: z.string().optional(),
+      limit: z.number().optional(),
+      offset: z.number().optional()
+    }))
     .query(({ ctx, input }) => {
-      return getService(ctx.db).listInventory(input.search);
+      return getService(ctx.db).listInventory(input.search, input.limit, input.offset);
     }),
 
   getLowStock: protectedProcedure.query(({ ctx }) => {
@@ -63,14 +67,19 @@ export const inventoryRouter = createTRPCRouter({
     const to = new Date();
     const from = new Date();
     from.setDate(from.getDate() - 30); // Last 30 days
-    return getService(ctx.db).getTransactions(from, to);
+    return getService(ctx.db).getTransactions(from, to, 10, 0); // Default 10 for dashboard
   }),
 
   // Transactions
   getTransactions: protectedProcedure
-    .input(z.object({ from: z.date(), to: z.date() }))
+    .input(z.object({ 
+      from: z.date(), 
+      to: z.date(),
+      limit: z.number().optional(),
+      offset: z.number().optional()
+    }))
     .query(({ ctx, input }) => {
-      return getService(ctx.db).getTransactions(input.from, input.to);
+      return getService(ctx.db).getTransactions(input.from, input.to, input.limit, input.offset);
     }),
 
   logTransaction: protectedProcedure

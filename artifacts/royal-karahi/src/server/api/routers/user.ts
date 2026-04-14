@@ -21,7 +21,6 @@ export const userRouter = createTRPCRouter({
       return getService(ctx.db).createUser({
         username: input.username,
         passwordHash,
-        passwordPlain: input.password,
         role: input.role
       });
     }),
@@ -40,8 +39,7 @@ export const userRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       const passwordHash = await bcrypt.hash(input.password, 10);
       return getService(ctx.db).updateUser(input.id, {
-        passwordHash,
-        passwordPlain: input.password
+        passwordHash
       });
     }),
 

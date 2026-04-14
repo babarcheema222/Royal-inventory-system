@@ -13,13 +13,12 @@ export class UserService {
         username: schema.usersTable.username,
         role: schema.usersTable.role,
         createdAt: schema.usersTable.createdAt,
-        passwordPlain: schema.usersTable.passwordPlain,
       })
       .from(schema.usersTable)
       .orderBy(schema.usersTable.createdAt);
   }
 
-  async createUser(data: { username: string; passwordHash: string; passwordPlain: string; role: "admin" | "user" | "manager" }) {
+  async createUser(data: { username: string; passwordHash: string; role: "admin" | "user" | "manager" }) {
     const [user] = await this.db
       .insert(schema.usersTable)
       .values(data)
@@ -36,7 +35,7 @@ export class UserService {
     await this.db.delete(schema.usersTable).where(eq(schema.usersTable.id, id));
   }
 
-  async updateUser(id: number, data: { passwordHash: string; passwordPlain: string }) {
+  async updateUser(id: number, data: { passwordHash: string }) {
     await this.db
       .update(schema.usersTable)
       .set(data)

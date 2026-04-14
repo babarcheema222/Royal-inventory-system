@@ -68,9 +68,12 @@ export default function Login() {
               <Label htmlFor="username">Username</Label>
               <Input
                 id="username"
+                name="username"
+                autoComplete="username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 required
+                aria-required="true"
                 disabled={isLoading}
                 className="h-12"
               />
@@ -79,10 +82,13 @@ export default function Login() {
               <Label htmlFor="password">Password</Label>
               <Input
                 id="password"
+                name="password"
                 type="password"
+                autoComplete="current-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                aria-required="true"
                 disabled={isLoading}
                 className="h-12"
               />

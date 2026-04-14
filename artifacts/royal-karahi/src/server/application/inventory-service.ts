@@ -1,14 +1,22 @@
+import { serverCache } from "../infrastructure/cache";
 import { IInventoryRepository } from "../domain/repositories/inventory-repository.interface";
+import { InventorySummary } from "../domain/entities/inventory";
 
 export class InventoryService {
   constructor(private repository: IInventoryRepository) {}
 
-  async getDashboardSummary() {
-    return this.repository.getInventorySummary();
+  async getDashboardSummary(): Promise<InventorySummary> {
+    const cacheKey = "dashboard:summary";
+    const cached = await serverCache.get<InventorySummary>(cacheKey);
+    if (cached) return cached;
+
+    const summary = await this.repository.getInventorySummary();
+    await serverCache.set(cacheKey, summary, 60000); // 60s cache
+    return summary;
   }
 
-  async listInventory(search?: string) {
-    return this.repository.listInventory(search);
+  async listInventory(search?: string, limit?: number, offset?: number) {
+    return this.repository.listInventory(search, limit, offset);
   }
 
   async getLowStock() {
@@ -39,8 +47,8 @@ export class InventoryService {
     return this.repository.deleteSubcategory(id);
   }
 
-  async getTransactions(from: Date, to: Date) {
-    return this.repository.getTransactions(from, to);
+  async getTransactions(from: Date, to: Date, limit?: number, offset?: number) {
+    return this.repository.getTransactions(from, to, limit, offset);
   }
 
   async logTransaction(data: { subcategoryId: number; type: "IN" | "OUT"; quantity: number; notes?: string | null; userId: number }) {

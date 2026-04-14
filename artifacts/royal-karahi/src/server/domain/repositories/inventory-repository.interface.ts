@@ -13,10 +13,10 @@ export interface IInventoryRepository {
 
   // Inventory
   getInventorySummary(): Promise<InventorySummary>;
-  listInventory(search?: string): Promise<(Subcategory & { categoryName: string; unit: string; isLowStock: boolean })[]>;
+  listInventory(search?: string, limit?: number, offset?: number): Promise<(Subcategory & { categoryName: string; unit: string; isLowStock: boolean })[]>;
   getLowStockItems(): Promise<(Subcategory & { categoryName: string; unit: string; isLowStock: boolean })[]>;
 
   // Transactions
-  getTransactions(from: Date, to: Date): Promise<(Transaction & { subcategoryName: string; categoryName: string; unit: string; username: string })[]>;
+  getTransactions(from: Date, to: Date, limit?: number, offset?: number): Promise<(Transaction & { subcategoryName: string; categoryName: string; unit: string; username: string })[]>;
   createTransaction(data: { subcategoryId: number; type: "IN" | "OUT"; quantity: number; notes?: string | null; userId: number }): Promise<Transaction>;
 }

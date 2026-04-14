@@ -52,7 +52,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         if (!credentials?.username || !credentials?.password) return null;
 
         const [user] = await db
-          .select()
+          .select({
+            id: usersTable.id,
+            username: usersTable.username,
+            role: usersTable.role,
+            passwordHash: usersTable.passwordHash,
+          })
           .from(usersTable)
           .where(eq(usersTable.username, credentials.username as string));
 

@@ -9,8 +9,8 @@ import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { FileText, Download, BarChart3, CalendarDays } from "lucide-react";
 import { format, parseISO } from "date-fns";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
+import { jsPDF } from "jspdf";
+import { generatePDF } from "@/utils/pdf-generator";
 
 export default function Reports() {
   const todayStr = format(new Date(), "yyyy-MM-dd");
@@ -42,114 +42,32 @@ export default function Reports() {
   }, [transactions]);
 
   const handleDownloadPDF = () => {
-    if (!transactions || !groupedTransactions) return;
+    if (!transactions) return;
 
-    const doc = new jsPDF();
-    const dateStr = format(new Date(), "PPP p");
     const reportDateRange = `${format(parseISO(dateRange.from), "PPP")} — ${format(parseISO(dateRange.to), "PPP")}`;
-
-    // Header
-    doc.setFontSize(22);
-    doc.setTextColor(153, 27, 27); // Burgundy
-    doc.text("ROYAL KARAHI", 14, 20);
-
-    doc.setFontSize(16);
-    doc.setTextColor(40, 40, 40);
-    doc.text("Inventory Log Report", 14, 30);
-
-    doc.setFontSize(10);
-    doc.setTextColor(100, 100, 100);
-    doc.text(`Filtered: ${reportDateRange}`, 14, 38);
-    doc.text(`Generated on: ${dateStr}`, 14, 44);
-
-    // Summary Stats
-    doc.setFillColor(245, 245, 245);
-    doc.rect(14, 50, 182, 20, 'F');
-    doc.setTextColor(40, 40, 40);
-    doc.setFontSize(10);
-    doc.setFont("helvetica", "bold");
-    doc.text("SUMMARY", 18, 56);
-    doc.setFont("helvetica", "normal");
-    doc.text(`Total In: ${summary?.totalIn || 0}`, 18, 64);
-    doc.text(`Total Out: ${summary?.totalOut || 0}`, 70, 64);
-    doc.text(`Total Transactions: ${summary?.totalTransactions || 0}`, 130, 64);
-
-    let currentY = 75;
-
-    // Categories
-    Object.entries(groupedTransactions)
-      .sort(([a], [b]) => a.localeCompare(b))
-      .forEach(([category, items]) => {
-        if (currentY > 250) {
-          doc.addPage();
-          currentY = 20;
-        }
-
-        doc.setFontSize(12);
-        doc.setFont("helvetica", "bold");
-        doc.setTextColor(153, 27, 27);
-        doc.text(category.toUpperCase(), 14, currentY);
-        currentY += 5;
-
-        const tableData = items.map(tx => [
-          format(new Date(tx.createdAt), "MM/dd HH:mm"),
-          tx.subcategoryName,
-          tx.type,
-          `${tx.type === "IN" ? "+" : "-"}${tx.quantity} ${tx.unit}`,
-          tx.username,
-          tx.notes || "-"
-        ]);
-
-        autoTable(doc, {
-          startY: currentY,
-          head: [["Time", "Item Name", "Type", "Quantity", "User", "Notes"]],
-          body: tableData,
-          headStyles: { fillColor: [153, 27, 27], fontStyle: 'bold' },
-          alternateRowStyles: { fillColor: [249, 249, 249] },
-          styles: { fontSize: 8, cellPadding: 2 },
-          margin: { left: 14, right: 14 },
-          didDrawPage: (data) => {
-            currentY = data.cursor ? data.cursor.y + 15 : currentY + 20;
-          }
-        });
-        
-        // Ensure currentY is updated for next category
-        currentY = (doc as any).lastAutoTable.finalY + 15;
-      });
-
-    // Branding Footer - Only on the last page
-    const lastPage = (doc as any).internal.getNumberOfPages();
-    doc.setPage(lastPage);
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(9);
-    const centerX = doc.internal.pageSize.width / 2;
-    const bottomY = doc.internal.pageSize.height - 10;
-    
-    const text1 = "(Designed and Manged by ";
-    const text2 = "BABAR CHEEMA";
-    const text3 = " )";
-    
-    const width1 = doc.getTextWidth(text1);
-    const width2 = doc.getTextWidth(text2);
-    const width3 = doc.getTextWidth(text3);
-    const totalWidth = width1 + width2 + width3;
-    
-    let startX = centerX - (totalWidth / 2);
-    doc.setTextColor(120, 120, 120);
-    doc.text(text1, startX, bottomY);
-    startX += width1;
-    doc.setTextColor(0, 0, 0); // Bold Black
-    doc.text(text2, startX, bottomY);
-    startX += width2;
-    doc.setTextColor(120, 120, 120);
-    doc.text(text3, startX, bottomY);
-
     const isTodayReport = dateRange.from === todayStr && dateRange.to === todayStr;
     const fileName = isTodayReport 
       ? `ROYAL-STOCK-REPORT-TODAY-${format(new Date(), "yyyy-MM-dd")}.pdf`
       : `Report-from-${dateRange.from}-to-${dateRange.to}.pdf`;
 
-    doc.save(fileName);
+    const head = [["Time", "Item Name", "Type", "Quantity", "User", "Notes"]];
+    const body = transactions.map(tx => [
+      format(new Date(tx.createdAt), "MM/dd HH:mm"),
+      tx.subcategoryName,
+      tx.type,
+      `${tx.type === "IN" ? "+" : "-"}${tx.quantity} ${tx.unit}`,
+      tx.username,
+      tx.notes || "-"
+    ]);
+
+    generatePDF({
+      title: "Inventory Log Report",
+      subtitle: `Filtered: ${reportDateRange}`,
+      fileName,
+      head,
+      body,
+      showSignature: true
+    });
   };
 
   const setToday = () => {
@@ -167,7 +85,7 @@ export default function Reports() {
           <p className="text-muted-foreground mt-1 text-sm font-bold uppercase">Audit stock movements and inventory history.</p>
         </div>
         <div className="flex gap-3">
-          <Button variant="outline" onClick={handleDownloadPDF} className="font-bold border-2">
+          <Button variant="outline" onClick={handleDownloadPDF} className="font-bold border-2" aria-label="Download PDF Stock Report" title="Download PDF Stock Report">
             <Download className="h-4 w-4 mr-2" /> Download PDF
           </Button>
         </div>
@@ -191,6 +109,8 @@ export default function Reports() {
                 size="sm"
                 className="text-xs mr-2 font-bold px-4 bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
                 onClick={setToday}
+                aria-label="Filter report by today"
+                title="Filter report by today"
               >
                 <CalendarDays className="h-3.5 w-3.5 mr-1.5" />
                 Today
@@ -200,10 +120,12 @@ export default function Reports() {
                 <Label htmlFor="from" className="text-[10px] uppercase font-bold text-muted-foreground ml-1">From</Label>
                 <Input
                   id="from"
+                  name="from"
                   type="date"
                   className="h-9 border-none focus-visible:ring-0 font-bold"
                   value={dateRange.from}
                   onChange={(e) => setDateRange(prev => ({ ...prev, from: e.target.value }))}
+                  aria-label="Start Date"
                 />
               </div>
               <div className="h-8 w-px bg-border mx-2" />
@@ -211,10 +133,12 @@ export default function Reports() {
                 <Label htmlFor="to" className="text-[10px] uppercase font-bold text-muted-foreground ml-1">To</Label>
                 <Input
                   id="to"
+                  name="to"
                   type="date"
                   className="h-9 border-none focus-visible:ring-0 font-bold"
                   value={dateRange.to}
                   onChange={(e) => setDateRange(prev => ({ ...prev, to: e.target.value }))}
+                  aria-label="End Date"
                 />
               </div>
             </div>

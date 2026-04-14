@@ -74,7 +74,7 @@ export function Sidebar() {
   if (!isAnyAdmin) return null;
 
   return (
-    <aside className="hidden md:flex w-64 bg-sidebar border-r border-sidebar-border h-full flex-col no-print shadow-xl z-20 flex-shrink-0">
+    <aside className="hidden md:flex w-64 bg-sidebar border-r border-sidebar-border h-full flex-col no-print shadow-xl z-20 flex-shrink-0 overflow-y-auto scrollbar-hide">
       <SidebarContent />
     </aside>
   );
