@@ -18,8 +18,8 @@ export default function Reports() {
     to: todayStr,
   });
 
-  const { data: transactions, isLoading } = api.inventory.getTransactions.useQuery({ 
-    from: parseISO(dateRange.from + "T00:00:00"), 
+  const { data: transactions, isLoading } = api.inventory.getTransactions.useQuery({
+    from: parseISO(dateRange.from + "T00:00:00"),
     to: parseISO(dateRange.to + "T23:59:59")
   });
 
@@ -70,16 +70,16 @@ export default function Reports() {
             <div>
               <CardTitle className="flex items-center gap-2 text-2xl font-black uppercase tracking-tighter">
                 <FileText className="h-6 w-6 text-primary" />
-                Inventory Audit Log
+                ROYAL  KARAHI  Inventory  Log
               </CardTitle>
               <CardDescription className="font-black text-foreground text-lg">
                 Filtered: {format(parseISO(dateRange.from), "PPP")} — {format(parseISO(dateRange.to), "PPP")}
               </CardDescription>
             </div>
             <div className="flex items-center gap-4 print:hidden bg-background p-2 rounded-lg border shadow-sm">
-              <Button 
-                variant="ghost" 
-                size="sm" 
+              <Button
+                variant="ghost"
+                size="sm"
                 className="text-xs mr-2 font-bold px-4 bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
                 onClick={setToday}
               >
@@ -89,9 +89,9 @@ export default function Reports() {
               <div className="h-6 w-px bg-border hidden sm:block" />
               <div className="grid gap-1">
                 <Label htmlFor="from" className="text-[10px] uppercase font-bold text-muted-foreground ml-1">From</Label>
-                <Input 
-                  id="from" 
-                  type="date" 
+                <Input
+                  id="from"
+                  type="date"
                   className="h-9 border-none focus-visible:ring-0 font-bold"
                   value={dateRange.from}
                   onChange={(e) => setDateRange(prev => ({ ...prev, from: e.target.value }))}
@@ -100,9 +100,9 @@ export default function Reports() {
               <div className="h-8 w-px bg-border mx-2" />
               <div className="grid gap-1">
                 <Label htmlFor="to" className="text-[10px] uppercase font-bold text-muted-foreground ml-1">To</Label>
-                <Input 
-                  id="to" 
-                  type="date" 
+                <Input
+                  id="to"
+                  type="date"
                   className="h-9 border-none focus-visible:ring-0 font-bold"
                   value={dateRange.to}
                   onChange={(e) => setDateRange(prev => ({ ...prev, to: e.target.value }))}
@@ -111,7 +111,7 @@ export default function Reports() {
             </div>
           </div>
         </CardHeader>
-        
+
         {/* HORIZONTAL STATS - Forced side-by-side even in print */}
         <div className="grid grid-cols-3 divide-x border-b bg-white print:grid-cols-3">
           <div className="p-6 space-y-1 text-center sm:text-left">
@@ -203,7 +203,7 @@ export default function Reports() {
           )}
         </div>
       </Card>
-      
+
       {/* Print Footer */}
       <div className="hidden print:block text-center mt-8 pt-4 border-t border-gray-100 text-muted-foreground text-[10px] font-bold uppercase tracking-wider">
         (Designed and Manged by <span className="text-blue-600">BABAR CHEEMA</span> )
