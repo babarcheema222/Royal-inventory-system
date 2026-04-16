@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Package, AlertTriangle, Layers, Activity, TrendingUp, ArrowRight, Download } from "lucide-react";
+import { Package, AlertTriangle, AlertCircle, Layers, Activity, TrendingUp, ArrowRight, Download } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { format, subDays, isSameDay } from "date-fns";
@@ -51,9 +51,10 @@ export default function Dashboard() {
     staleTime: 10000
   });
 
+  const [isAssetsModalOpen, setIsAssetsModalOpen] = useState(false);
   const [isRemainingStockModalOpen, setIsRemainingStockModalOpen] = useState(false);
   const { data: stockItems, isLoading: loadingStock } = api.inventory.list.useQuery({}, { 
-    enabled: isRemainingStockModalOpen,
+    enabled: isRemainingStockModalOpen || isAssetsModalOpen,
     staleTime: 30000
   });
 
@@ -161,10 +162,13 @@ export default function Dashboard() {
 
       {/* CARDS */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-          <Card className="shadow-lg border-none bg-gradient-to-br from-card to-muted/30">
+          <Card 
+            className="shadow-lg border-none bg-gradient-to-br from-card to-muted/30 cursor-pointer hover:scale-[1.02] transition-transform group"
+            onClick={() => setIsAssetsModalOpen(true)}
+          >
             <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0 text-gray-800">
-              <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Total Assets</CardTitle>
-              <div className="bg-primary/10 p-2 rounded-lg">
+              <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground group-hover:text-primary transition-colors">Total Assets</CardTitle>
+              <div className="bg-primary/10 p-2 rounded-lg group-hover:bg-primary/20 transition-colors">
                 <Package className="w-4 h-4 text-primary" />
               </div>
             </CardHeader>
@@ -174,7 +178,9 @@ export default function Dashboard() {
               ) : (
                 <div className="text-3xl font-bold">{summary?.totalItems || 0}</div>
               )}
-              <p className="text-xs text-muted-foreground mt-1">Unique stock units trackable</p>
+              <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                Unique items tracked <ArrowRight className="w-3 h-3" />
+              </p>
             </CardContent>
           </Card>
 
@@ -410,6 +416,61 @@ export default function Dashboard() {
               <div className="py-12 text-center text-muted-foreground">
                 <Package className="w-12 h-12 mx-auto mb-4 opacity-20" />
                 <p className="font-medium">No stock items found.</p>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+      
+      <Dialog open={isAssetsModalOpen} onOpenChange={setIsAssetsModalOpen}>
+        <DialogContent className="max-w-2xl text-gray-800">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold text-primary flex items-center gap-2">
+              <Package className="w-5 h-5" />
+              Asset Inventory Hierarchy
+            </DialogTitle>
+            <DialogDescription>
+              Detailed breakdown of all categories and sub-categories managed in the system.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="max-h-[70vh] overflow-y-auto pr-2">
+            {loadingStock ? (
+              <div className="py-12 text-center text-muted-foreground animate-pulse font-bold uppercase tracking-widest">
+                Loading assets...
+              </div>
+            ) : stockItems && stockItems.length > 0 ? (
+              <div className="space-y-4">
+                {Object.keys(groupedStock).sort().map(category => (
+                  <div key={category} className="border rounded-xl overflow-hidden bg-muted/10">
+                    <div className="bg-muted px-4 py-2 flex items-center justify-between hover:bg-muted/80 transition-colors">
+                      <h3 className="font-bold text-sm uppercase tracking-wider text-foreground">
+                        {category}
+                      </h3>
+                      <Badge variant="outline" className="text-[10px] font-bold">
+                        {groupedStock[category]?.length} Items
+                      </Badge>
+                    </div>
+                    <div className="p-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {groupedStock[category]!.sort((a, b) => a.name.localeCompare(b.name)).map((item) => (
+                        <div key={item.id} className="flex items-center gap-2 px-3 py-1.5 bg-white rounded-lg border border-primary/5 shadow-sm">
+                          <div className="h-1.5 w-1.5 rounded-full bg-primary/30" />
+                          <span className="text-sm font-semibold text-gray-700">{item.name}</span>
+                          {item.isLowStock && (
+                            <div className="ml-auto">
+                              <AlertCircle className="h-3 w-3 text-destructive animate-pulse" />
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="py-12 text-center text-muted-foreground">
+                <Package className="w-12 h-12 mx-auto mb-4 opacity-20" />
+                <p className="font-medium">No assets found.</p>
               </div>
             )}
           </div>
