@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
-import { LayoutDashboard, Package, ListTree, FileText, Users, LogOut, History } from "lucide-react";
+import { LayoutDashboard, Package, ListTree, FileText, Users, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth";
 
@@ -20,10 +20,7 @@ export function SidebarContent({ onClose }: SidebarContentProps) {
     { href: "/inventory", label: "Inventory", icon: Package },
     { href: "/admin/categories", label: "Categories", icon: ListTree },
     { href: "/admin/reports", label: "Reports", icon: FileText },
-    ...(isAdmin ? [
-      { href: "/admin/history", label: "History", icon: History },
-      { href: "/admin/users", label: "Users", icon: Users }
-    ] : []),
+    ...(isAdmin ? [{ href: "/admin/users", label: "Users", icon: Users }] : []),
   ];
 
   if (!isAnyAdmin) return null;

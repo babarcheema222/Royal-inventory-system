@@ -30,13 +30,3 @@ export interface InventorySummary {
   totalCategories: number;
   totalTransactionsToday: number;
 }
-
-export interface MetadataHistory {
-  id: number;
-  entityType: string;
-  entityName: string;
-  action: string;
-  userId: number;
-  createdAt: Date;
-  username: string | null;
-}
