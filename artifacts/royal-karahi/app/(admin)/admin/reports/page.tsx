@@ -91,77 +91,81 @@ export default function Reports() {
         </div>
       </div>
 
-      <Card className="print:shadow-none print:border-none shadow-md text-gray-800 border-2 overflow-hidden">
-        <CardHeader className="border-b bg-muted/30">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            <div>
-              <CardTitle className="flex items-center gap-2 text-2xl font-black uppercase tracking-tighter">
-                <FileText className="h-6 w-6 text-primary" />
-                ROYAL  KARAHI  Inventory  Log
-              </CardTitle>
-              <CardDescription className="font-black text-foreground text-lg">
-                Filtered: {format(parseISO(dateRange.from), "PPP")} — {format(parseISO(dateRange.to), "PPP")}
-              </CardDescription>
-            </div>
-            <div className="flex items-center gap-4 print:hidden bg-background p-2 rounded-lg border shadow-sm">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-xs mr-2 font-bold px-4 bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
-                onClick={setToday}
-                aria-label="Filter report by today"
-                title="Filter report by today"
-              >
-                <CalendarDays className="h-3.5 w-3.5 mr-1.5" />
-                Today
-              </Button>
-              <div className="h-6 w-px bg-border hidden sm:block" />
-              <div className="grid gap-1">
-                <Label htmlFor="from" className="text-[10px] uppercase font-bold text-muted-foreground ml-1">From</Label>
-                <Input
-                  id="from"
-                  name="from"
-                  type="date"
-                  className="h-9 border-none focus-visible:ring-0 font-bold"
-                  value={dateRange.from}
-                  onChange={(e) => setDateRange(prev => ({ ...prev, from: e.target.value }))}
-                  aria-label="Start Date"
-                />
+      <Card className="print:shadow-none print:border-none shadow-xl text-gray-800 border-0 md:border-2 overflow-hidden rounded-2xl md:rounded-xl">
+        <CardHeader className="border-b bg-gradient-to-br from-muted/50 to-background pb-6">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+            <div className="space-y-2">
+              <div className="flex items-center gap-3">
+                <div className="bg-primary/10 p-2.5 rounded-xl">
+                  <FileText className="h-7 w-7 text-primary" />
+                </div>
+                <CardTitle className="text-2xl md:text-3xl font-black uppercase tracking-tighter leading-none">
+                  Royal Karahi<br className="md:hidden" /> <span className="text-primary/60">Inventory Log</span>
+                </CardTitle>
               </div>
-              <div className="h-8 w-px bg-border mx-2" />
-              <div className="grid gap-1">
-                <Label htmlFor="to" className="text-[10px] uppercase font-bold text-muted-foreground ml-1">To</Label>
-                <Input
-                  id="to"
-                  name="to"
-                  type="date"
-                  className="h-9 border-none focus-visible:ring-0 font-bold"
-                  value={dateRange.to}
-                  onChange={(e) => setDateRange(prev => ({ ...prev, to: e.target.value }))}
-                  aria-label="End Date"
-                />
+              <div className="flex items-center gap-2 px-1">
+                <div className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
+                <CardDescription className="font-extrabold text-muted-foreground text-[10px] md:text-xs uppercase tracking-[0.2em]">
+                  Filtered: {format(parseISO(dateRange.from), "MMM d")} — {format(parseISO(dateRange.to), "MMM d")}
+                </CardDescription>
+              </div>
+            </div>
+
+            <div className="w-full md:w-auto">
+              {/* Filter Section - Stacked Today at top, From/To row below */}
+              <div className="bg-background/80 backdrop-blur-sm p-4 md:p-3 rounded-2xl border shadow-sm space-y-4">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  className="h-11 md:h-9 text-xs font-black bg-primary/5 text-primary border border-primary/20 hover:bg-primary/10 transition-all w-full md:w-auto shadow-sm"
+                  onClick={setToday}
+                >
+                  <CalendarDays className="h-4 w-4 mr-2" />
+                  Today Only
+                </Button>
+                
+                <div className="grid grid-cols-2 gap-3 md:flex md:flex-row md:items-center md:gap-4 w-full">
+                  <div className="grid gap-1">
+                    <Label className="text-[9px] font-black uppercase text-muted-foreground tracking-widest ml-1">From</Label>
+                    <Input
+                      type="date"
+                      className="h-10 md:h-9 bg-muted/20 border-0 focus-visible:ring-1 font-bold text-xs rounded-xl px-2"
+                      value={dateRange.from}
+                      onChange={(e) => setDateRange(prev => ({ ...prev, from: e.target.value }))}
+                    />
+                  </div>
+                  <div className="grid gap-1">
+                    <Label className="text-[9px] font-black uppercase text-muted-foreground tracking-widest ml-1">To</Label>
+                    <Input
+                      type="date"
+                      className="h-10 md:h-9 bg-muted/20 border-0 focus-visible:ring-1 font-bold text-xs rounded-xl px-2"
+                      value={dateRange.to}
+                      onChange={(e) => setDateRange(prev => ({ ...prev, to: e.target.value }))}
+                    />
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </CardHeader>
 
-        {/* HORIZONTAL STATS - Forced side-by-side even in print */}
-        <div className="grid grid-cols-3 divide-x border-b bg-white print:grid-cols-3">
-          <div className="p-6 space-y-1 text-center sm:text-left">
-            <p className="text-xs text-muted-foreground font-black uppercase tracking-widest">Total In (Count)</p>
-            <p className="text-4xl font-black text-primary print:text-black">
+        {/* STATS OVERVIEW - Horizontal on all screens */}
+        <div className="grid grid-cols-3 divide-x border-b bg-white/50 backdrop-blur-xs">
+          <div className="p-4 md:p-10 space-y-1 text-center transition-colors hover:bg-primary/[0.02]">
+            <p className="text-[9px] md:text-[10px] text-muted-foreground font-black uppercase tracking-widest leading-tight">Total<br className="md:hidden" /> In</p>
+            <p className="text-3xl md:text-5xl font-black text-primary drop-shadow-sm">
               {summary?.totalIn || 0}
             </p>
           </div>
-          <div className="p-6 space-y-1 text-center sm:text-left border-x">
-            <p className="text-xs text-muted-foreground font-black uppercase tracking-widest">Total Out (Count)</p>
-            <p className="text-4xl font-black text-secondary print:text-black">
+          <div className="p-4 md:p-10 space-y-1 text-center transition-colors hover:bg-secondary/[0.02]">
+            <p className="text-[9px] md:text-[10px] text-muted-foreground font-black uppercase tracking-widest leading-tight">Total<br className="md:hidden" /> Out</p>
+            <p className="text-3xl md:text-5xl font-black text-secondary drop-shadow-sm">
               {summary?.totalOut || 0}
             </p>
           </div>
-          <div className="p-6 space-y-1 text-center sm:text-left">
-            <p className="text-xs text-muted-foreground font-black uppercase tracking-widest">Total Txns</p>
-            <p className="text-4xl font-black text-foreground print:text-black">
+          <div className="p-4 md:p-10 space-y-1 text-center transition-colors hover:bg-muted/[0.1]">
+            <p className="text-[9px] md:text-[10px] text-muted-foreground font-black uppercase tracking-widest leading-tight">Total<br className="md:hidden" /> Txns</p>
+            <p className="text-3xl md:text-5xl font-black text-foreground drop-shadow-sm">
               {isLoading ? "..." : summary?.totalTransactions || 0}
             </p>
           </div>
