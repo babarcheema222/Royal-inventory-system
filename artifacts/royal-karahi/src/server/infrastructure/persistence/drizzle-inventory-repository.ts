@@ -2,7 +2,7 @@ import { eq, sql, lt, and, gte, lte, desc } from "drizzle-orm";
 import { type NeonHttpDatabase } from "drizzle-orm/neon-http";
 import * as schema from "@workspace/db/schema";
 import { IInventoryRepository } from "../../domain/repositories/inventory-repository.interface";
-import { Category, Subcategory, Transaction, InventorySummary } from "../../domain/entities/inventory";
+import { Category, Subcategory, Transaction, InventorySummary, MetadataHistory } from "../../domain/entities/inventory";
 
 export class DrizzleInventoryRepository implements IInventoryRepository {
   constructor(private db: NeonHttpDatabase<typeof schema>) {}
@@ -168,5 +168,27 @@ export class DrizzleInventoryRepository implements IInventoryRepository {
     const [transaction] = await this.db.insert(schema.transactionsTable).values(data).returning();
 
     return transaction;
+  }
+
+  async logMetadataEvent(data: { entityType: string; entityName: string; action: string; userId: number }): Promise<void> {
+    await this.db.insert(schema.inventoryHistoryTable).values(data);
+  }
+
+  async getMetadataHistory(limit: number = 100, offset: number = 0): Promise<MetadataHistory[]> {
+    return this.db
+      .select({
+        id: schema.inventoryHistoryTable.id,
+        entityType: schema.inventoryHistoryTable.entityType,
+        entityName: schema.inventoryHistoryTable.entityName,
+        action: schema.inventoryHistoryTable.action,
+        userId: schema.inventoryHistoryTable.userId,
+        createdAt: schema.inventoryHistoryTable.createdAt,
+        username: schema.usersTable.username,
+      })
+      .from(schema.inventoryHistoryTable)
+      .leftJoin(schema.usersTable, eq(schema.inventoryHistoryTable.userId, schema.usersTable.id))
+      .orderBy(desc(schema.inventoryHistoryTable.createdAt))
+      .limit(limit)
+      .offset(offset);
   }
 }

@@ -39,12 +39,12 @@ export default function Dashboard() {
   const { data: summary, isLoading: loadingSummary } = api.inventory.getSummary.useQuery(undefined, {
     staleTime: 60000 // Cache summary for 1 min (server-side also has 60s cache)
   });
-  
+
   // Phase 2: Heavier data loaded lazily/non-blocking
   const { data: transactions, isLoading: loadingTransactions } = api.inventory.getRecentTransactions.useQuery(undefined, {
-    staleTime: 15000 
+    staleTime: 15000
   });
-  
+
   const [isLowStockModalOpen, setIsLowStockModalOpen] = useState(false);
   const { data: lowStockItems, isLoading: loadingLowStock } = api.inventory.getLowStock.useQuery(undefined, {
     enabled: isLowStockModalOpen,
@@ -53,7 +53,7 @@ export default function Dashboard() {
 
   const [isAssetsModalOpen, setIsAssetsModalOpen] = useState(false);
   const [isRemainingStockModalOpen, setIsRemainingStockModalOpen] = useState(false);
-  const { data: stockItems, isLoading: loadingStock } = api.inventory.list.useQuery({}, { 
+  const { data: stockItems, isLoading: loadingStock } = api.inventory.list.useQuery({}, {
     enabled: isRemainingStockModalOpen || isAssetsModalOpen,
     staleTime: 30000
   });
@@ -73,17 +73,17 @@ export default function Dashboard() {
 
     const dateFormatted = format(new Date(), "yyyy-MM-dd");
     const head = [["Item Name", "Current Stock (Remaining)"]];
-    
+
     // Build grouped body with category headers
     const body: any[] = [];
     const sortedCategories = Object.keys(groupedStock).sort();
-    
+
     sortedCategories.forEach(cat => {
       // Add category header row
       const headerRow = [cat.toUpperCase(), ""];
       (headerRow as any)._isHighlighted = true;
       body.push(headerRow);
-      
+
       // Add items for this category
       const items = groupedStock[cat]!.sort((a, b) => a.name.localeCompare(b.name));
       items.forEach(item => {
@@ -162,87 +162,87 @@ export default function Dashboard() {
 
       {/* CARDS */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-          <Card 
-            className="shadow-lg border-none bg-gradient-to-br from-card to-muted/30 cursor-pointer hover:scale-[1.02] transition-transform group"
-            onClick={() => setIsAssetsModalOpen(true)}
-          >
-            <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0 text-gray-800">
-              <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground group-hover:text-primary transition-colors">Total Assets</CardTitle>
-              <div className="bg-primary/10 p-2 rounded-lg group-hover:bg-primary/20 transition-colors">
-                <Package className="w-4 h-4 text-primary" />
-              </div>
-            </CardHeader>
-            <CardContent>
-              {loadingSummary ? (
-                <Skeleton className="h-8 w-16 mb-2" />
-              ) : (
-                <div className="text-3xl font-bold">{summary?.totalItems || 0}</div>
-              )}
-              <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-                Unique items tracked <ArrowRight className="w-3 h-3" />
-              </p>
-            </CardContent>
-          </Card>
+        <Card
+          className="shadow-lg border-none bg-gradient-to-br from-card to-muted/30 cursor-pointer hover:scale-[1.02] transition-transform group"
+          onClick={() => setIsAssetsModalOpen(true)}
+        >
+          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0 text-gray-800">
+            <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground group-hover:text-primary transition-colors">Total Assets</CardTitle>
+            <div className="bg-primary/10 p-2 rounded-lg group-hover:bg-primary/20 transition-colors">
+              <Package className="w-4 h-4 text-primary" />
+            </div>
+          </CardHeader>
+          <CardContent>
+            {loadingSummary ? (
+              <Skeleton className="h-8 w-16 mb-2" />
+            ) : (
+              <div className="text-3xl font-bold">{summary?.totalItems || 0}</div>
+            )}
+            <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+              Unique items tracked <ArrowRight className="w-3 h-3" />
+            </p>
+          </CardContent>
+        </Card>
 
-          <Card
-            className="shadow-lg border-none bg-gradient-to-br from-card to-destructive/5 text-gray-800 cursor-pointer hover:scale-[1.02] transition-transform group"
-            onClick={() => setIsLowStockModalOpen(true)}
-          >
-            <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-              <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground group-hover:text-destructive transition-colors">Critical Stock</CardTitle>
-              <div className="bg-destructive/10 p-2 rounded-lg group-hover:bg-destructive/20 transition-colors">
-                <AlertTriangle className="w-4 h-4 text-destructive" />
-              </div>
-            </CardHeader>
-            <CardContent>
-              {loadingSummary ? (
-                <Skeleton className="h-8 w-16 mb-2" />
-              ) : (
-                <div className="text-3xl font-bold text-destructive font-bold">{summary?.lowStockCount || 0}</div>
-              )}
-              <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-                Items requiring attention <ArrowRight className="w-3 h-3" />
-              </p>
-            </CardContent>
-          </Card>
+        <Card
+          className="shadow-lg border-none bg-gradient-to-br from-card to-destructive/5 text-gray-800 cursor-pointer hover:scale-[1.02] transition-transform group"
+          onClick={() => setIsLowStockModalOpen(true)}
+        >
+          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+            <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground group-hover:text-destructive transition-colors">Critical Stock</CardTitle>
+            <div className="bg-destructive/10 p-2 rounded-lg group-hover:bg-destructive/20 transition-colors">
+              <AlertTriangle className="w-4 h-4 text-destructive" />
+            </div>
+          </CardHeader>
+          <CardContent>
+            {loadingSummary ? (
+              <Skeleton className="h-8 w-16 mb-2" />
+            ) : (
+              <div className="text-3xl font-bold text-destructive font-bold">{summary?.lowStockCount || 0}</div>
+            )}
+            <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+              Items requiring attention <ArrowRight className="w-3 h-3" />
+            </p>
+          </CardContent>
+        </Card>
 
-          <Card 
-            className="shadow-lg border-none bg-gradient-to-br from-card to-secondary/5 text-gray-800 cursor-pointer hover:scale-[1.02] transition-transform group"
-            onClick={() => setIsRemainingStockModalOpen(true)}
-          >
-            <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-              <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground group-hover:text-primary transition-colors">
-                Remaining Stock
-              </CardTitle>
-              <div className="bg-primary/10 p-2 rounded-lg group-hover:bg-primary/20 transition-colors">
-                <Layers className="w-4 h-4 text-primary" />
-              </div>
-            </CardHeader>
+        <Card
+          className="shadow-lg border-none bg-gradient-to-br from-card to-secondary/5 text-gray-800 cursor-pointer hover:scale-[1.02] transition-transform group"
+          onClick={() => setIsRemainingStockModalOpen(true)}
+        >
+          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+            <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground group-hover:text-primary transition-colors">
+              Remaining Stock
+            </CardTitle>
+            <div className="bg-primary/10 p-2 rounded-lg group-hover:bg-primary/20 transition-colors">
+              <Layers className="w-4 h-4 text-primary" />
+            </div>
+          </CardHeader>
 
-            <CardContent>
-              <div className="text-xl font-bold">Current Inventory</div>
-              <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-                View all items by category <ArrowRight className="w-3 h-3" />
-              </p>
-            </CardContent>
-          </Card>
+          <CardContent>
+            <div className="text-xl font-bold">Current Stock</div>
+            <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+              View all items by category <ArrowRight className="w-3 h-3" />
+            </p>
+          </CardContent>
+        </Card>
 
-          <Card className="shadow-lg border-none bg-gradient-to-br from-card to-accent/5 text-gray-800">
-            <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-              <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Daily History</CardTitle>
-              <div className="bg-accent/10 p-2 rounded-lg">
-                <Activity className="w-4 h-4 text-accent-foreground" />
-              </div>
-            </CardHeader>
-            <CardContent>
-              {loadingSummary ? (
-                <Skeleton className="h-8 w-16 mb-2" />
-              ) : (
-                <div className="text-3xl font-bold">{summary?.totalTransactionsToday || 0}</div>
-              )}
-              <p className="text-xs text-muted-foreground mt-1">Transactions in last 24 hours</p>
-            </CardContent>
-          </Card>
+        <Card className="shadow-lg border-none bg-gradient-to-br from-card to-accent/5 text-gray-800">
+          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+            <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Daily History</CardTitle>
+            <div className="bg-accent/10 p-2 rounded-lg">
+              <Activity className="w-4 h-4 text-accent-foreground" />
+            </div>
+          </CardHeader>
+          <CardContent>
+            {loadingSummary ? (
+              <Skeleton className="h-8 w-16 mb-2" />
+            ) : (
+              <div className="text-3xl font-bold">{summary?.totalTransactionsToday || 0}</div>
+            )}
+            <p className="text-xs text-muted-foreground mt-1">Transactions in last 24 hours</p>
+          </CardContent>
+        </Card>
       </div>
 
       {/* CHART */}
@@ -264,21 +264,21 @@ export default function Dashboard() {
                 <XAxis dataKey="date" />
                 <YAxis hide />
                 <ChartTooltip content={<ChartTooltipContent indicator="dot" />} />
-                <Area 
-                  type="monotone" 
-                  dataKey="out" 
-                  stroke={chartConfig.out.color} 
-                  fill={chartConfig.out.color} 
-                  fillOpacity={0.1} 
+                <Area
+                  type="monotone"
+                  dataKey="out"
+                  stroke={chartConfig.out.color}
+                  fill={chartConfig.out.color}
+                  fillOpacity={0.1}
                   strokeWidth={3}
                   activeDot={{ r: 6 }}
                 />
-                <Area 
-                  type="monotone" 
-                  dataKey="in" 
-                  stroke={chartConfig.in.color} 
-                  fill={chartConfig.in.color} 
-                  fillOpacity={0.1} 
+                <Area
+                  type="monotone"
+                  dataKey="in"
+                  stroke={chartConfig.in.color}
+                  fill={chartConfig.in.color}
+                  fillOpacity={0.1}
                   strokeWidth={3}
                   activeDot={{ r: 6 }}
                 />
@@ -421,7 +421,7 @@ export default function Dashboard() {
           </div>
         </DialogContent>
       </Dialog>
-      
+
       <Dialog open={isAssetsModalOpen} onOpenChange={setIsAssetsModalOpen}>
         <DialogContent className="max-w-2xl text-gray-800">
           <DialogHeader>

@@ -27,24 +27,60 @@ export class InventoryService {
     return this.repository.getCategories();
   }
 
-  async createCategory(name: string, unit: string) {
-    return this.repository.createCategory({ name, unit });
+  async createCategory(name: string, unit: string, userId: number) {
+    const category = await this.repository.createCategory({ name, unit });
+    await this.repository.logMetadataEvent({
+      entityType: "CATEGORY",
+      entityName: name,
+      action: "CREATE",
+      userId
+    });
+    return category;
   }
 
-  async deleteCategory(id: number) {
-    return this.repository.deleteCategory(id);
+  async deleteCategory(id: number, userId: number) {
+    // Get name before deletion
+    const categories = await this.repository.getCategories();
+    const cat = categories.find(c => c.id === id);
+    if (!cat) return;
+
+    await this.repository.deleteCategory(id);
+    await this.repository.logMetadataEvent({
+      entityType: "CATEGORY",
+      entityName: cat.name,
+      action: "DELETE",
+      userId
+    });
   }
 
   async getSubcategories(categoryId?: number) {
     return this.repository.getSubcategories(categoryId);
   }
 
-  async createSubcategory(name: string, categoryId: number) {
-    return this.repository.createSubcategory({ name, categoryId });
+  async createSubcategory(name: string, categoryId: number, userId: number) {
+    const sub = await this.repository.createSubcategory({ name, categoryId });
+    await this.repository.logMetadataEvent({
+      entityType: "SUBCATEGORY",
+      entityName: name,
+      action: "CREATE",
+      userId
+    });
+    return sub;
   }
 
-  async deleteSubcategory(id: number) {
-    return this.repository.deleteSubcategory(id);
+  async deleteSubcategory(id: number, userId: number) {
+    // Get name before deletion
+    const items = await this.repository.listInventory();
+    const item = items.find(i => i.id === id);
+    if (!item) return;
+
+    await this.repository.deleteSubcategory(id);
+    await this.repository.logMetadataEvent({
+      entityType: "SUBCATEGORY",
+      entityName: item.name,
+      action: "DELETE",
+      userId
+    });
   }
 
   async getTransactions(from: Date, to: Date, limit?: number, offset?: number) {
@@ -53,5 +89,9 @@ export class InventoryService {
 
   async logTransaction(data: { subcategoryId: number; type: "IN" | "OUT"; quantity: number; notes?: string | null; userId: number }) {
     return this.repository.createTransaction(data);
+  }
+
+  async getMetadataHistory(limit?: number, offset?: number) {
+    return this.repository.getMetadataHistory(limit, offset);
   }
 }

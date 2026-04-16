@@ -35,13 +35,13 @@ export const inventoryRouter = createTRPCRouter({
   createCategory: adminProcedure
     .input(z.object({ name: z.string(), unit: z.string() }))
     .mutation(({ ctx, input }) => {
-      return getService(ctx.db).createCategory(input.name, input.unit);
+      return getService(ctx.db).createCategory(input.name, input.unit, Number(ctx.session.user.id));
     }),
 
   deleteCategory: adminProcedure
     .input(z.object({ id: z.number() }))
     .mutation(({ ctx, input }) => {
-      return getService(ctx.db).deleteCategory(input.id);
+      return getService(ctx.db).deleteCategory(input.id, Number(ctx.session.user.id));
     }),
 
   // Subcategories
@@ -54,13 +54,13 @@ export const inventoryRouter = createTRPCRouter({
   createSubcategory: adminProcedure
     .input(z.object({ name: z.string(), categoryId: z.number() }))
     .mutation(({ ctx, input }) => {
-      return getService(ctx.db).createSubcategory(input.name, input.categoryId);
+      return getService(ctx.db).createSubcategory(input.name, input.categoryId, Number(ctx.session.user.id));
     }),
 
   deleteSubcategory: adminProcedure
     .input(z.object({ id: z.number() }))
     .mutation(({ ctx, input }) => {
-      return getService(ctx.db).deleteSubcategory(input.id);
+      return getService(ctx.db).deleteSubcategory(input.id, Number(ctx.session.user.id));
     }),
 
   getRecentTransactions: protectedProcedure.query(({ ctx }) => {
@@ -94,5 +94,14 @@ export const inventoryRouter = createTRPCRouter({
         ...input,
         userId: Number(ctx.session.user.id)
       });
+    }),
+
+  getMetadataHistory: adminProcedure
+    .input(z.object({ 
+      limit: z.number().optional(),
+      offset: z.number().optional()
+    }))
+    .query(({ ctx, input }) => {
+      return getService(ctx.db).getMetadataHistory(input.limit, input.offset);
     }),
 });
