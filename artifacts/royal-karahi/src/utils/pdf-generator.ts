@@ -47,6 +47,31 @@ export function generatePDF({
     styles: { fontSize: 8, cellPadding: 2 },
     margin: { top: 50, bottom: 20 },
     
+    didParseCell: (data) => {
+      // Check for custom highlighting flag on the row
+      const rowRaw = data.row.raw as any;
+      if (rowRaw && rowRaw._isHighlighted) {
+        data.cell.styles.fillColor = secondaryColor;
+        data.cell.styles.textColor = [255, 255, 255];
+        data.cell.styles.fontStyle = 'bold';
+        
+        // If it's a category header, we might want it slightly larger
+        if (data.column.index === 0) {
+          data.cell.styles.fontSize = 9;
+        }
+      } else {
+        // Automatically color code IN and OUT status everywhere
+        const cellValue = data.cell.text[0];
+        if (cellValue === "IN") {
+          data.cell.styles.textColor = [16, 185, 129]; // Emerald 500
+          data.cell.styles.fontStyle = 'bold';
+        } else if (cellValue === "OUT") {
+          data.cell.styles.textColor = [220, 38, 38]; // Red 600
+          data.cell.styles.fontStyle = 'bold';
+        }
+      }
+    },
+    
     didDrawPage: (data) => {
       // Header on every page
       doc.setFontSize(22);

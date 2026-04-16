@@ -199,7 +199,7 @@ export default function Inventory() {
                                         <Button 
                                           variant="default" 
                                           size="sm"
-                                          className="w-full bg-primary hover:bg-primary/90 shadow-sm font-bold text-[10px] h-8"
+                                          className="w-full bg-emerald-600 hover:bg-emerald-700 shadow-sm font-bold text-[10px] h-8"
                                           onClick={() => setTxDialog({ isOpen: true, subcategoryId: item.id, name: item.name, type: "IN", unit: item.unit })}
                                           aria-label={`Restock ${item.name}`}
                                           title={`Restock ${item.name}`}

@@ -51,14 +51,39 @@ export default function Reports() {
       : `Report-from-${dateRange.from}-to-${dateRange.to}.pdf`;
 
     const head = [["Time", "Item Name", "Type", "Quantity", "User", "Notes"]];
-    const body = transactions.map(tx => [
-      format(new Date(tx.createdAt), "MM/dd HH:mm"),
-      tx.subcategoryName,
-      tx.type,
-      `${tx.type === "IN" ? "+" : "-"}${tx.quantity} ${tx.unit}`,
-      tx.username,
-      tx.notes || "-"
-    ]);
+    
+    // Group transactions by date for the PDF
+    const groupedByDate: Record<string, typeof transactions> = {};
+    transactions.forEach(tx => {
+      const dateKey = format(new Date(tx.createdAt), "PPPP"); // Thursday, April 16th, 2026
+      if (!groupedByDate[dateKey]) groupedByDate[dateKey] = [];
+      groupedByDate[dateKey].push(tx);
+    });
+
+    const body: any[] = [];
+    // Sort dates by descending order (newest dates first)
+    const sortedDates = Object.keys(groupedByDate).sort((a, b) => 
+      new Date(groupedByDate[b]![0]!.createdAt).getTime() - new Date(groupedByDate[a]![0]!.createdAt).getTime()
+    );
+
+    sortedDates.forEach(date => {
+      // Add highlighted Date Header
+      const headerRow = [date.toUpperCase(), "", "", "", "", ""];
+      (headerRow as any)._isHighlighted = true;
+      body.push(headerRow);
+
+      // Add individual transactions for this date
+      groupedByDate[date]!.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).forEach(tx => {
+        body.push([
+          format(new Date(tx.createdAt), "HH:mm"),
+          tx.subcategoryName,
+          tx.type,
+          `${tx.type === "IN" ? "+" : "-"}${tx.quantity} ${tx.unit}`,
+          tx.username,
+          tx.notes || "-"
+        ]);
+      });
+    });
 
     generatePDF({
       title: "Inventory Log Report",
@@ -151,15 +176,15 @@ export default function Reports() {
 
         {/* STATS OVERVIEW - Horizontal on all screens */}
         <div className="grid grid-cols-3 divide-x border-b bg-white/50 backdrop-blur-xs">
-          <div className="p-4 md:p-10 space-y-1 text-center transition-colors hover:bg-primary/[0.02]">
+          <div className="p-4 md:p-10 space-y-1 text-center transition-colors hover:bg-emerald-50/50">
             <p className="text-[9px] md:text-[10px] text-muted-foreground font-black uppercase tracking-widest leading-tight">Total<br className="md:hidden" /> In</p>
-            <p className="text-3xl md:text-5xl font-black text-primary drop-shadow-sm">
+            <p className="text-3xl md:text-5xl font-black text-emerald-600 drop-shadow-sm">
               {summary?.totalIn || 0}
             </p>
           </div>
-          <div className="p-4 md:p-10 space-y-1 text-center transition-colors hover:bg-secondary/[0.02]">
+          <div className="p-4 md:p-10 space-y-1 text-center transition-colors hover:bg-red-50/50">
             <p className="text-[9px] md:text-[10px] text-muted-foreground font-black uppercase tracking-widest leading-tight">Total<br className="md:hidden" /> Out</p>
-            <p className="text-3xl md:text-5xl font-black text-secondary drop-shadow-sm">
+            <p className="text-3xl md:text-5xl font-black text-red-600 drop-shadow-sm">
               {summary?.totalOut || 0}
             </p>
           </div>
@@ -207,12 +232,12 @@ export default function Reports() {
                               {tx.subcategoryName}
                             </TableCell>
                             <TableCell>
-                              <span className={`font-black text-[10px] px-2 py-0.5 rounded-sm border ${tx.type === 'IN' ? 'bg-primary/10 border-primary/20 text-primary print:text-black' : 'bg-secondary/10 border-secondary/20 text-secondary print:text-black'}`}>
+                              <span className={`font-black text-[10px] px-2 py-0.5 rounded-sm border ${tx.type === 'IN' ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-red-50 border-red-200 text-red-700'}`}>
                                 {tx.type}
                               </span>
                             </TableCell>
                             <TableCell className="text-right font-mono font-black text-sm">
-                              <span className={tx.type === "IN" ? "text-primary" : "text-secondary"}>
+                              <span className={tx.type === "IN" ? "text-emerald-600" : "text-red-600"}>
                                 {tx.type === "IN" ? "+" : "-"}{tx.quantity}
                               </span>
                               <span className="text-[10px] ml-1 text-muted-foreground uppercase">{tx.unit}</span>

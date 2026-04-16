@@ -23,11 +23,11 @@ import {
 const chartConfig = {
   in: {
     label: "Stock In",
-    color: "hsl(var(--primary))",
+    color: "#10b981", // Emerald Green
   },
   out: {
     label: "Stock Out",
-    color: "hsl(var(--secondary))",
+    color: "#991b1b", // Deep Red (Royal Karahi Brand)
   },
 } satisfies ChartConfig;
 
@@ -51,25 +51,51 @@ export default function Dashboard() {
     staleTime: 10000
   });
 
-  const { refetch: fetchAllStock } = api.inventory.list.useQuery({}, { enabled: false });
+  const [isRemainingStockModalOpen, setIsRemainingStockModalOpen] = useState(false);
+  const { data: stockItems, isLoading: loadingStock } = api.inventory.list.useQuery({}, { 
+    enabled: isRemainingStockModalOpen,
+    staleTime: 30000
+  });
+
+  const groupedStock = useMemo(() => {
+    if (!stockItems) return {};
+    return stockItems.reduce((acc, item) => {
+      const cat = item.categoryName || "Uncategorized";
+      if (!acc[cat]) acc[cat] = [];
+      acc[cat].push(item);
+      return acc;
+    }, {} as Record<string, typeof stockItems>);
+  }, [stockItems]);
 
   const downloadRemainingStockPDF = async () => {
-    const { data: stockItems } = await fetchAllStock();
     if (!stockItems) return;
 
     const dateFormatted = format(new Date(), "yyyy-MM-dd");
-    const head = [["Item Name", "Category", "Current Stock (Remaining)"]];
-    const body = stockItems
-      .sort((a, b) => (a.categoryName || "").localeCompare(b.categoryName || ""))
-      .map(item => [
-        item.name,
-        item.categoryName,
-        `${Number(item.currentStock).toFixed(2)} ${item.unit}`
-      ]);
+    const head = [["Item Name", "Current Stock (Remaining)"]];
+    
+    // Build grouped body with category headers
+    const body: any[] = [];
+    const sortedCategories = Object.keys(groupedStock).sort();
+    
+    sortedCategories.forEach(cat => {
+      // Add category header row
+      const headerRow = [cat.toUpperCase(), ""];
+      (headerRow as any)._isHighlighted = true;
+      body.push(headerRow);
+      
+      // Add items for this category
+      const items = groupedStock[cat]!.sort((a, b) => a.name.localeCompare(b.name));
+      items.forEach(item => {
+        body.push([
+          item.name,
+          `${Number(item.currentStock).toFixed(2)} ${item.unit}`
+        ]);
+      });
+    });
 
     generatePDF({
       title: "Current Stock Inventory Report",
-      subtitle: "Comprehensive list of all inventory items and quantities.",
+      subtitle: "Grouped by category with highlighted section headers.",
       fileName: `royal-karahi-remaining-stock-${dateFormatted}.pdf`,
       head,
       body,
@@ -174,30 +200,26 @@ export default function Dashboard() {
             </CardContent>
           </Card>
 
-        <Card className="shadow-lg border-none bg-gradient-to-br from-card to-secondary/5 text-gray-800">
-          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-              Remaining Stock
-            </CardTitle>
+          <Card 
+            className="shadow-lg border-none bg-gradient-to-br from-card to-secondary/5 text-gray-800 cursor-pointer hover:scale-[1.02] transition-transform group"
+            onClick={() => setIsRemainingStockModalOpen(true)}
+          >
+            <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+              <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground group-hover:text-primary transition-colors">
+                Remaining Stock
+              </CardTitle>
+              <div className="bg-primary/10 p-2 rounded-lg group-hover:bg-primary/20 transition-colors">
+                <Layers className="w-4 h-4 text-primary" />
+              </div>
+            </CardHeader>
 
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-100 bg-red-50"
-              onClick={downloadRemainingStockPDF}
-              title="Download Remaining Stock PDF"
-            >
-              <Download className="w-5 h-5 stroke-[2.5]" />
-            </Button>
-          </CardHeader>
-
-          <CardContent>
-            <div className="text-xl font-bold">All Stock</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Export full inventory list
-            </p>
-          </CardContent>
-        </Card>
+            <CardContent>
+              <div className="text-xl font-bold">Current Inventory</div>
+              <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                View all items by category <ArrowRight className="w-3 h-3" />
+              </p>
+            </CardContent>
+          </Card>
 
           <Card className="shadow-lg border-none bg-gradient-to-br from-card to-accent/5 text-gray-800">
             <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
@@ -236,57 +258,31 @@ export default function Dashboard() {
                 <XAxis dataKey="date" />
                 <YAxis hide />
                 <ChartTooltip content={<ChartTooltipContent indicator="dot" />} />
-                <Area type="monotone" dataKey="out" stroke={chartConfig.out.color} fill={chartConfig.out.color} fillOpacity={0.1} />
-                <Area type="monotone" dataKey="in" stroke={chartConfig.in.color} fill={chartConfig.in.color} fillOpacity={0.1} />
+                <Area 
+                  type="monotone" 
+                  dataKey="out" 
+                  stroke={chartConfig.out.color} 
+                  fill={chartConfig.out.color} 
+                  fillOpacity={0.1} 
+                  strokeWidth={3}
+                  activeDot={{ r: 6 }}
+                />
+                <Area 
+                  type="monotone" 
+                  dataKey="in" 
+                  stroke={chartConfig.in.color} 
+                  fill={chartConfig.in.color} 
+                  fillOpacity={0.1} 
+                  strokeWidth={3}
+                  activeDot={{ r: 6 }}
+                />
               </AreaChart>
             </ChartContainer>
           )}
         </CardContent>
       </Card>
 
-      {/* RECENT ACTIVITY */}
-      <Card className="shadow-lg border-none text-gray-800">
-        <CardHeader className="border-b bg-muted/20">
-          <CardTitle className="text-lg font-bold uppercase tracking-wide">Recent Activity Log</CardTitle>
-        </CardHeader>
-        <CardContent className="pt-6">
-          {loadingTransactions ? (
-            <div className="space-y-4">
-              {[...Array(5)].map((_, i) => (
-                <div key={i} className="flex items-center justify-between p-3 rounded-lg bg-muted/10">
-                  <div className="flex flex-col gap-2">
-                    <Skeleton className="h-4 w-32" />
-                    <Skeleton className="h-3 w-24" />
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Skeleton className="h-6 w-12" />
-                    <Skeleton className="h-5 w-16" />
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : transactions && transactions.length > 0 ? (
-            <div className="space-y-4">
-              {transactions.map(tx => (
-                <div key={tx.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/10 hover:bg-muted/20 transition-colors">
-                  <div className="flex flex-col">
-                    <span className="font-semibold text-primary">{tx.subcategoryName}</span>
-                    <span className="text-xs text-muted-foreground">{format(new Date(tx.createdAt), "MMM d, h:mm a")} by {tx.username}</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className={`px-2 py-1 rounded text-xs font-bold ${tx.type === 'IN' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                      {tx.type}
-                    </span>
-                    <span className="font-mono font-bold">{tx.quantity} {tx.unit}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-8 text-muted-foreground">No Recent Activity</div>
-          )}
-        </CardContent>
-      </Card>
+
 
       <Dialog open={isLowStockModalOpen} onOpenChange={setIsLowStockModalOpen}>
         <DialogContent className="max-w-2xl text-gray-800">
@@ -347,6 +343,76 @@ export default function Dashboard() {
             )}
           </div>
 
+        </DialogContent>
+      </Dialog>
+      <Dialog open={isRemainingStockModalOpen} onOpenChange={setIsRemainingStockModalOpen}>
+        <DialogContent className="max-w-3xl text-gray-800">
+          <DialogHeader>
+            <div className="flex justify-between items-start pr-8">
+              <div className="space-y-1">
+                <DialogTitle className="text-xl font-bold text-primary flex items-center gap-2">
+                  <Layers className="w-5 h-5" />
+                  Current Stock Inventory
+                </DialogTitle>
+                <DialogDescription>
+                  Complete list of all items currently in stock, grouped by category.
+                </DialogDescription>
+              </div>
+              {stockItems && stockItems.length > 0 && (
+                <Button
+                  onClick={downloadRemainingStockPDF}
+                  className="bg-primary hover:bg-primary/90 text-white font-bold h-9 w-9 p-0 flex items-center justify-center rounded-lg shadow-sm shrink-0"
+                  size="sm"
+                  title="Download PDF"
+                >
+                  <Download className="w-5 h-5" />
+                </Button>
+              )}
+            </div>
+          </DialogHeader>
+
+          <div className="max-h-[70vh] overflow-y-auto">
+            {loadingStock ? (
+              <div className="py-12 text-center text-muted-foreground animate-pulse font-bold uppercase tracking-widest">
+                Loading inventory...
+              </div>
+            ) : stockItems && stockItems.length > 0 ? (
+              <div className="space-y-6">
+                {Object.keys(groupedStock).sort().map(category => (
+                  <div key={category} className="space-y-3">
+                    <h3 className="text-sm font-black uppercase text-primary tracking-widest bg-primary/5 px-3 py-2 rounded-lg border-l-4 border-primary">
+                      {category}
+                    </h3>
+                    <Table>
+                      <TableHeader className="bg-muted/30">
+                        <TableRow>
+                          <TableHead className="font-bold py-2">Item Name</TableHead>
+                          <TableHead className="text-right font-bold py-2">Current Stock</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {groupedStock[category]!.sort((a, b) => a.name.localeCompare(b.name)).map((item) => (
+                          <TableRow key={item.id} className="hover:bg-muted/5">
+                            <TableCell className="font-semibold py-2">{item.name}</TableCell>
+                            <TableCell className="text-right py-2">
+                              <Badge variant={Number(item.currentStock) <= 10 ? "destructive" : "outline"} className="font-mono">
+                                {Number(item.currentStock).toFixed(2)} {item.unit}
+                              </Badge>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="py-12 text-center text-muted-foreground">
+                <Package className="w-12 h-12 mx-auto mb-4 opacity-20" />
+                <p className="font-medium">No stock items found.</p>
+              </div>
+            )}
+          </div>
         </DialogContent>
       </Dialog>
     </div>
