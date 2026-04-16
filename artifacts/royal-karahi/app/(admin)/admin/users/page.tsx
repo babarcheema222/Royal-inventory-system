@@ -5,10 +5,11 @@ import { api } from "@/utils/trpc";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Trash2, UserPlus, Shield, User, LayoutDashboard, Key, Eye, EyeOff, PencilLine } from "lucide-react";
+import { Trash2, UserPlus, Shield, User, LayoutDashboard, Key, PencilLine } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { toast } from "sonner";
@@ -24,7 +25,7 @@ export default function Users() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState<"admin" | "user" | "manager">("user");
-  const [showFormPassword, setShowFormPassword] = useState(false);
+
 
   if (authLoading) {
     return <div className="p-8 text-center animate-pulse">Verifying permissions...</div>;
@@ -47,7 +48,7 @@ export default function Users() {
       setUsername("");
       setPassword("");
       setRole("user");
-      setShowFormPassword(false);
+
     },
     onError: (err) => {
       toast.error(err.message || "Failed to create user", { duration: 1500 });
@@ -128,28 +129,18 @@ export default function Users() {
               
               <div className="space-y-2">
                 <Label htmlFor="password" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Password</Label>
-                <div className="relative">
-                  <Input 
-                    id="password"
-                    name="password"
-                    type={showFormPassword ? "text" : "password"}
-                    autoComplete="new-password"
-                    required
-                    aria-required="true"
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="pr-10 font-mono"
-                    disabled={createUserMutation.isPending}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowFormPassword(!showFormPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-primary transition-colors"
-                  >
-                    {showFormPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </button>
-                </div>
+                <PasswordInput 
+                  id="password"
+                  name="password"
+                  autoComplete="new-password"
+                  required
+                  aria-required="true"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="font-mono h-10"
+                  disabled={createUserMutation.isPending}
+                />
               </div>
               
               <div className="space-y-2">
