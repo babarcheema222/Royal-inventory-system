@@ -1,7 +1,8 @@
 import { z } from "zod";
-import { createTRPCRouter, protectedProcedure, adminProcedure } from "@/server/api/trpc";
+import { createTRPCRouter, protectedProcedure, managerProcedure } from "@/server/api/trpc";
 import { DrizzleInventoryRepository } from "@/server/infrastructure/persistence/drizzle-inventory-repository";
 import { InventoryService } from "@/server/application/inventory-service";
+import { ProductionLogger } from "@/lib/error-handler";
 
 const getService = (db: any) => {
   const repo = new DrizzleInventoryRepository(db);
@@ -32,15 +33,23 @@ export const inventoryRouter = createTRPCRouter({
     return getService(ctx.db).getCategories();
   }),
 
-  createCategory: adminProcedure
+  createCategory: managerProcedure
     .input(z.object({ name: z.string(), unit: z.string() }))
-    .mutation(({ ctx, input }) => {
+    .mutation(async ({ ctx, input }) => {
+      ProductionLogger.info(`[Audit] Category creation by ${ctx.session.user.role}:${ctx.session.user.id}`, {
+        userId: ctx.session.user.id,
+        metadata: { name: input.name, unit: input.unit }
+      });
       return getService(ctx.db).createCategory(input.name, input.unit);
     }),
 
-  deleteCategory: adminProcedure
+  deleteCategory: managerProcedure
     .input(z.object({ id: z.number() }))
-    .mutation(({ ctx, input }) => {
+    .mutation(async ({ ctx, input }) => {
+      ProductionLogger.info(`[Audit] Category deletion by ${ctx.session.user.role}:${ctx.session.user.id}`, {
+        userId: ctx.session.user.id,
+        metadata: { categoryId: input.id }
+      });
       return getService(ctx.db).deleteCategory(input.id);
     }),
 
@@ -51,15 +60,23 @@ export const inventoryRouter = createTRPCRouter({
       return getService(ctx.db).getSubcategories(input.categoryId);
     }),
 
-  createSubcategory: adminProcedure
+  createSubcategory: managerProcedure
     .input(z.object({ name: z.string(), categoryId: z.number() }))
-    .mutation(({ ctx, input }) => {
+    .mutation(async ({ ctx, input }) => {
+      ProductionLogger.info(`[Audit] Subcategory creation by ${ctx.session.user.role}:${ctx.session.user.id}`, {
+        userId: ctx.session.user.id,
+        metadata: { name: input.name, categoryId: input.categoryId }
+      });
       return getService(ctx.db).createSubcategory(input.name, input.categoryId);
     }),
 
-  deleteSubcategory: adminProcedure
+  deleteSubcategory: managerProcedure
     .input(z.object({ id: z.number() }))
-    .mutation(({ ctx, input }) => {
+    .mutation(async ({ ctx, input }) => {
+      ProductionLogger.info(`[Audit] Subcategory deletion by ${ctx.session.user.role}:${ctx.session.user.id}`, {
+        userId: ctx.session.user.id,
+        metadata: { subcategoryId: input.id }
+      });
       return getService(ctx.db).deleteSubcategory(input.id);
     }),
 

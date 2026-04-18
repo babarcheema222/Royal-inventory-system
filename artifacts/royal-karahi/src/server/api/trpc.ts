@@ -127,11 +127,25 @@ export const protectedProcedure = t.procedure
   });
 
 /**
- * Admin procedure
+ * Generic Role-based procedure factory
  */
-export const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
-  if (ctx.session.user.role !== "admin") {
-    throw new TRPCError({ code: "FORBIDDEN", message: "Admin access required" });
-  }
-  return next();
-});
+export const roleProcedure = (roles: string[]) => 
+  protectedProcedure.use(({ ctx, next }) => {
+    if (!roles.includes(ctx.session.user.role)) {
+      throw new TRPCError({ 
+        code: "FORBIDDEN", 
+        message: `Insufficient permissions. Required roles: ${roles.join(", ")}` 
+      });
+    }
+    return next();
+  });
+
+/**
+ * Admin procedure (Strictly Admin)
+ */
+export const adminProcedure = roleProcedure(["admin"]);
+
+/**
+ * Manager procedure (Admin or Manager)
+ */
+export const managerProcedure = roleProcedure(["admin", "manager"]);

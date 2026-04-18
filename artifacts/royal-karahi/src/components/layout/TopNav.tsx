@@ -25,7 +25,7 @@ export function TopNav() {
                   <span className="text-xs font-bold uppercase">Menu</span>
                 </Button>
               </SheetTrigger>
-              <SheetContent side="left" className="p-0 w-64 border-none">
+              <SheetContent side="left" className="p-0 w-64 border-none [&>button]:hidden">
                 <SheetHeader className="sr-only">
                   <SheetTitle>Navigation Menu</SheetTitle>
                   <SheetDescription>Main navigation links for Royal Karahi management system.</SheetDescription>
@@ -37,13 +37,15 @@ export function TopNav() {
         )}
         
         {/* Logo - always show or at least for consistency */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <img 
             src="/logo.jpeg" 
             alt="Royal Karahi Logo" 
-            className="h-9 w-9 object-contain"
+            className="h-11 w-11 object-contain rounded-sm"
           />
-          <h1 className="text-xl font-bold text-primary tracking-tight">ROYAL KARAHI</h1>
+          <h1 className="text-xl md:text-2xl font-black text-primary tracking-tighter leading-tight uppercase">
+            Royal<br className="md:hidden" /> Karahi
+          </h1>
         </div>
       </div>
 

@@ -151,8 +151,10 @@ export default function Reports() {
                 
                 <div className="grid grid-cols-2 gap-3 md:flex md:flex-row md:items-center md:gap-4 w-full">
                   <div className="grid gap-1">
-                    <Label className="text-[9px] font-black uppercase text-muted-foreground tracking-widest ml-1">From</Label>
+                    <Label htmlFor="report-from" className="text-[9px] font-black uppercase text-muted-foreground tracking-widest ml-1">From</Label>
                     <Input
+                      id="report-from"
+                      name="reportFrom"
                       type="date"
                       className="h-10 md:h-9 bg-muted/20 border-0 focus-visible:ring-1 font-bold text-xs rounded-xl px-2"
                       value={dateRange.from}
@@ -160,8 +162,10 @@ export default function Reports() {
                     />
                   </div>
                   <div className="grid gap-1">
-                    <Label className="text-[9px] font-black uppercase text-muted-foreground tracking-widest ml-1">To</Label>
+                    <Label htmlFor="report-to" className="text-[9px] font-black uppercase text-muted-foreground tracking-widest ml-1">To</Label>
                     <Input
+                      id="report-to"
+                      name="reportTo"
                       type="date"
                       className="h-10 md:h-9 bg-muted/20 border-0 focus-visible:ring-1 font-bold text-xs rounded-xl px-2"
                       value={dateRange.to}
@@ -266,9 +270,17 @@ export default function Reports() {
         </div>
       </Card>
 
-      {/* Print Footer */}
       <div className="hidden print:block text-center mt-8 pt-4 border-t border-gray-100 text-muted-foreground text-[10px] font-bold uppercase tracking-wider">
-        (Designed and Manged by <span className="text-blue-600">BABAR CHEEMA</span> )
+        (Designed and Managed by{" "}
+        <a 
+          href="https://babarcheema-portfolio.netlify.app/" 
+          target="_blank" 
+          rel="noopener noreferrer" 
+          className="text-blue-600 underline"
+        >
+          BABAR CHEEMA
+        </a>{" "}
+        )
       </div>
     </div>
   );

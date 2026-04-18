@@ -116,9 +116,10 @@ export function generatePDF({
     const centerX = pageWidth / 2;
     const bottomY = pageHeight - 10;
     
-    const text1 = "(Designed and Manged by ";
+    const text1 = "(Designed and Managed by ";
     const text2 = "BABAR CHEEMA";
     const text3 = " )";
+    const portfolioUrl = "https://babarcheema-portfolio.netlify.app/";
     
     doc.setFont("helvetica", "bold");
     doc.setFontSize(9);
@@ -128,12 +129,15 @@ export function generatePDF({
     const width3 = doc.getTextWidth(text3);
     const totalWidth = width1 + width2 + width3;
     
-    let startX = centerX - (totalWidth / 2);
+    let startX = pageWidth - totalWidth - 14; // Right aligned for more professional look
     doc.setTextColor(...mutedColor);
     doc.text(text1, startX, bottomY);
     startX += width1;
-    doc.setTextColor(...blackColor); // Bold Black
-    doc.text(text2, startX, bottomY);
+    doc.setTextColor(30, 64, 175); // Professional Indigo Blue for the link
+    doc.text(text2, startX, bottomY, { url: portfolioUrl });
+    // Keep internal link as fallback for some viewers
+    doc.link(startX, bottomY - 4, width2, 6, { url: portfolioUrl });
+    
     startX += width2;
     doc.setTextColor(...mutedColor);
     doc.text(text3, startX, bottomY);
