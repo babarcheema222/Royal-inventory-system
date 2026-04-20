@@ -52,8 +52,15 @@ export class DrizzleInventoryRepository implements IInventoryRepository {
       totalCategoriesRow,
       todayTransactionsRow
     ] = await Promise.all([
-      this.db.select({ count: sql<number>`count(*)::int` }).from(schema.subcategoriesTable),
-      this.db.select({ count: sql<number>`count(*)::int` }).from(schema.subcategoriesTable).where(lt(schema.subcategoriesTable.currentStock, 10)),
+      this.db
+        .select({ count: sql<number>`count(*)::int` })
+        .from(schema.subcategoriesTable)
+        .innerJoin(schema.categoriesTable, eq(schema.subcategoriesTable.categoryId, schema.categoriesTable.id)),
+      this.db
+        .select({ count: sql<number>`count(*)::int` })
+        .from(schema.subcategoriesTable)
+        .innerJoin(schema.categoriesTable, eq(schema.subcategoriesTable.categoryId, schema.categoriesTable.id))
+        .where(lt(schema.subcategoriesTable.currentStock, 10)),
       this.db.select({ count: sql<number>`count(*)::int` }).from(schema.categoriesTable),
       this.db.select({ count: sql<number>`count(*)::int` }).from(schema.transactionsTable).where(gte(schema.transactionsTable.createdAt, last24h))
     ]);

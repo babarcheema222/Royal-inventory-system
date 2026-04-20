@@ -6,13 +6,7 @@ export class InventoryService {
   constructor(private repository: IInventoryRepository) {}
 
   async getDashboardSummary(): Promise<InventorySummary> {
-    const cacheKey = "dashboard:summary";
-    const cached = await serverCache.get<InventorySummary>(cacheKey);
-    if (cached) return cached;
-
-    const summary = await this.repository.getInventorySummary();
-    await serverCache.set(cacheKey, summary, 60000); // 60s cache
-    return summary;
+    return this.repository.getInventorySummary();
   }
 
   async listInventory(search?: string, limit?: number, offset?: number) {

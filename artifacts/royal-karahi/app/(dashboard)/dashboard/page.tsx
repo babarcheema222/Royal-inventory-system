@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Package, AlertTriangle, AlertCircle, Layers, Activity, TrendingUp, ArrowRight, Download } from "lucide-react";
+import { Package, AlertTriangle, AlertCircle, Layers, ArrowRight, Download } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { format, subDays, isSameDay } from "date-fns";
@@ -37,12 +37,14 @@ const Skeleton = ({ className }: { className?: string }) => (
 
 export default function Dashboard() {
   const { data: summary, isLoading: loadingSummary } = api.inventory.getSummary.useQuery(undefined, {
-    staleTime: 60000 // Cache summary for 1 min (server-side also has 60s cache)
+    refetchInterval: 5000, // Refetch every 5s for real-time feel
+    refetchOnWindowFocus: true
   });
 
   // Phase 2: Heavier data loaded lazily/non-blocking
   const { data: transactions, isLoading: loadingTransactions } = api.inventory.getRecentTransactions.useQuery(undefined, {
-    staleTime: 15000
+    refetchInterval: 10000,
+    refetchOnWindowFocus: true
   });
 
   const [isLowStockModalOpen, setIsLowStockModalOpen] = useState(false);
@@ -161,7 +163,7 @@ export default function Dashboard() {
       </div>
 
       {/* CARDS */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         <Card
           className="shadow-lg border-none bg-gradient-to-br from-card to-muted/30 cursor-pointer hover:scale-[1.02] transition-transform group"
           onClick={() => setIsAssetsModalOpen(true)}
@@ -231,23 +233,6 @@ export default function Dashboard() {
             <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
               View all items by category <ArrowRight className="w-3 h-3" />
             </p>
-          </CardContent>
-        </Card>
-
-        <Card className="shadow-lg border-none bg-gradient-to-br from-card to-accent/5 text-gray-800">
-          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Daily History</CardTitle>
-            <div className="bg-accent/10 p-2 rounded-lg">
-              <Activity className="w-4 h-4 text-accent-foreground" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            {loadingSummary ? (
-              <Skeleton className="h-8 w-16 mb-2" />
-            ) : (
-              <div className="text-3xl font-bold">{summary?.totalTransactionsToday || 0}</div>
-            )}
-            <p className="text-xs text-muted-foreground mt-1">Transactions in last 24 hours</p>
           </CardContent>
         </Card>
       </div>
