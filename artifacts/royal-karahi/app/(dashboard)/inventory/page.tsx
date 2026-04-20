@@ -18,11 +18,10 @@ import { useDebounce } from "@/hooks/use-debounce";
 export default function Inventory() {
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, 300);
-  const { data: items, isLoading } = api.inventory.list.useQuery(
+  const { data: items, isLoading, refetch } = api.inventory.list.useQuery(
     { search: debouncedSearch || undefined },
-    { staleTime: 30000 }
+    { staleTime: 5000 } // Cache for 5s
   );
-  const utils = api.useUtils();
   const [txDialog, setTxDialog] = useState<{ isOpen: boolean; subcategoryId: number; name: string; type: "IN" | "OUT"; unit: string } | null>(null);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
 
@@ -32,7 +31,7 @@ export default function Inventory() {
   const createTxMutation = api.inventory.logTransaction.useMutation({
     onSuccess: () => {
       toast.success("Transaction recorded successfully", { duration: 1500 });
-      utils.inventory.list.invalidate();
+      refetch();
       setTxDialog(null);
       setQuantity("");
       setNotes("");
@@ -76,13 +75,13 @@ export default function Inventory() {
 
   // Auto-expand first matching category on search
   useEffect(() => {
-    if (debouncedSearch && items && Object.keys(groupedItems).length > 0) {
+    if (search.trim() && items && Object.keys(groupedItems).length > 0) {
       const firstCategory = Object.keys(groupedItems).sort()[0];
       if (firstCategory) {
         setActiveCategory(firstCategory);
       }
     }
-  }, [debouncedSearch, items]);
+  }, [search, items]);
 
   return (
     <div className="p-4 md:p-8 space-y-6 max-w-6xl mx-auto">
@@ -138,7 +137,7 @@ export default function Inventory() {
                       <ChevronDown className="h-5 w-5" />
                     </div>
                     <div>
-                      <h2 className="text-lg font-black text-foreground flex items-center gap-2 uppercase tracking-tight">
+                      <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
                         {category}
                         {lowStockInCat && <AlertCircle className="h-4 w-4 text-destructive animate-pulse" />}
                       </h2>
