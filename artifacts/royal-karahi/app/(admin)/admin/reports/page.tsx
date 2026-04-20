@@ -46,12 +46,12 @@ export default function Reports() {
 
     const reportDateRange = `${format(parseISO(dateRange.from), "PPP")} — ${format(parseISO(dateRange.to), "PPP")}`;
     const isTodayReport = dateRange.from === todayStr && dateRange.to === todayStr;
-    const fileName = isTodayReport 
+    const fileName = isTodayReport
       ? `ROYAL-STOCK-REPORT-TODAY-${format(new Date(), "yyyy-MM-dd")}.pdf`
       : `Report-from-${dateRange.from}-to-${dateRange.to}.pdf`;
 
-    const head = [["Time", "Item Name", "Type", "Quantity", "User", "Notes"]];
-    
+    const head = [["Time", "Item (Category > Subcategory)", "Type", "Quantity", "User", "Notes"]];
+
     // Group transactions by date for the PDF
     const groupedByDate: Record<string, typeof transactions> = {};
     transactions.forEach(tx => {
@@ -62,7 +62,7 @@ export default function Reports() {
 
     const body: any[] = [];
     // Sort dates by descending order (newest dates first)
-    const sortedDates = Object.keys(groupedByDate).sort((a, b) => 
+    const sortedDates = Object.keys(groupedByDate).sort((a, b) =>
       new Date(groupedByDate[b]![0]!.createdAt).getTime() - new Date(groupedByDate[a]![0]!.createdAt).getTime()
     );
 
@@ -75,8 +75,8 @@ export default function Reports() {
       // Add individual transactions for this date
       groupedByDate[date]!.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).forEach(tx => {
         body.push([
-          format(new Date(tx.createdAt), "HH:mm"),
-          tx.subcategoryName,
+          format(new Date(tx.createdAt), "hh:mm a"),
+          `${tx.categoryName} > ${tx.subcategoryName}`,
           tx.type,
           `${tx.type === "IN" ? "+" : "-"}${tx.quantity} ${tx.unit}`,
           tx.username,
@@ -148,26 +148,26 @@ export default function Reports() {
                   <CalendarDays className="h-4 w-4 mr-2" />
                   Today Only
                 </Button>
-                
-                <div className="grid grid-cols-2 gap-3 md:flex md:flex-row md:items-center md:gap-4 w-full">
-                  <div className="grid gap-1">
-                    <Label htmlFor="report-from" className="text-[9px] font-black uppercase text-muted-foreground tracking-widest ml-1">From</Label>
+
+                <div className="flex items-center gap-2 w-full overflow-hidden">
+                  <div className="flex-1 min-w-0 space-y-1">
+                    <Label htmlFor="report-from" className="text-[8px] font-black uppercase text-muted-foreground tracking-widest ml-1 leading-none">From</Label>
                     <Input
                       id="report-from"
                       name="reportFrom"
                       type="date"
-                      className="h-10 md:h-9 bg-muted/20 border-0 focus-visible:ring-1 font-bold text-xs rounded-xl px-2"
+                      className="h-8 bg-muted/40 border-0 focus-visible:ring-1 font-bold text-[9px] rounded-lg px-1"
                       value={dateRange.from}
                       onChange={(e) => setDateRange(prev => ({ ...prev, from: e.target.value }))}
                     />
                   </div>
-                  <div className="grid gap-1">
-                    <Label htmlFor="report-to" className="text-[9px] font-black uppercase text-muted-foreground tracking-widest ml-1">To</Label>
+                  <div className="flex-1 min-w-0 space-y-1">
+                    <Label htmlFor="report-to" className="text-[8px] font-black uppercase text-muted-foreground tracking-widest ml-1 leading-none">To</Label>
                     <Input
                       id="report-to"
                       name="reportTo"
                       type="date"
-                      className="h-10 md:h-9 bg-muted/20 border-0 focus-visible:ring-1 font-bold text-xs rounded-xl px-2"
+                      className="h-8 bg-muted/40 border-0 focus-visible:ring-1 font-bold text-[9px] rounded-lg px-1"
                       value={dateRange.to}
                       onChange={(e) => setDateRange(prev => ({ ...prev, to: e.target.value }))}
                     />
@@ -205,58 +205,50 @@ export default function Reports() {
             <div className="text-center py-20 text-muted-foreground animate-pulse font-bold uppercase tracking-widest">
               Compiling report data...
             </div>
-          ) : groupedTransactions && Object.keys(groupedTransactions).length > 0 ? (
-            <div className="divide-y-4 divide-muted">
-              {Object.entries(groupedTransactions).sort(([a], [b]) => a.localeCompare(b)).map(([category, items]) => (
-                <div key={category} className="space-y-4 pt-8 pb-12 first:pt-4">
-                  <div className="px-6">
-                    <h3 className="text-xl font-black text-primary uppercase tracking-tighter border-l-4 border-primary pl-4 bg-primary/5 py-2">
-                      {category}
-                    </h3>
-                  </div>
-                  <div className="px-4 overflow-x-auto">
-                    <Table>
-                      <TableHeader className="bg-muted/30 print:bg-transparent text-gray-800">
-                        <TableRow className="border-b-2">
-                          <TableHead className="font-bold w-[15%]">Time</TableHead>
-                          <TableHead className="font-bold w-[25%]">Item Name</TableHead>
-                          <TableHead className="font-bold w-[10%]">Type</TableHead>
-                          <TableHead className="text-right font-bold w-[15%]">Quantity</TableHead>
-                          <TableHead className="font-bold w-[15%]">User</TableHead>
-                          <TableHead className="font-bold w-[20%]">Notes</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {items.map((tx) => (
-                          <TableRow key={tx.id} className="print:border-black/10 border-b hover:bg-muted/5 transition-colors">
-                            <TableCell className="whitespace-nowrap font-bold text-[11px] uppercase tracking-tighter">
-                              {format(new Date(tx.createdAt), "MM/dd HH:mm")}
-                            </TableCell>
-                            <TableCell className="font-black text-primary uppercase tracking-tight">
-                              {tx.subcategoryName}
-                            </TableCell>
-                            <TableCell>
-                              <span className={`font-black text-[10px] px-2 py-0.5 rounded-sm border ${tx.type === 'IN' ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-red-50 border-red-200 text-red-700'}`}>
-                                {tx.type}
-                              </span>
-                            </TableCell>
-                            <TableCell className="text-right font-mono font-black text-sm">
-                              <span className={tx.type === "IN" ? "text-emerald-600" : "text-red-600"}>
-                                {tx.type === "IN" ? "+" : "-"}{tx.quantity}
-                              </span>
-                              <span className="text-[10px] ml-1 text-muted-foreground uppercase">{tx.unit}</span>
-                            </TableCell>
-                            <TableCell className="text-xs font-black uppercase tracking-tighter text-muted-foreground">{tx.username}</TableCell>
-                            <TableCell className="text-[11px] text-muted-foreground print:text-black/70 font-bold leading-tight">
-                              {tx.notes || "-"}
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                </div>
-              ))}
+          ) : transactions && transactions.length > 0 ? (
+            <div className="px-2 py-4 overflow-x-auto overflow-y-hidden">
+              <Table>
+                <TableHeader className="bg-muted/30 print:bg-transparent text-gray-800">
+                  <TableRow className="border-b-2">
+                    <TableHead className="font-bold w-[12%] text-[11px] uppercase px-2">Time</TableHead>
+                    <TableHead className="font-bold w-[30%] text-[11px] uppercase px-2">Item Name</TableHead>
+                    <TableHead className="font-bold w-[8%] text-[11px] uppercase px-2">Type</TableHead>
+                    <TableHead className="text-right font-bold w-[15%] text-[11px] uppercase px-2">Qty</TableHead>
+                    <TableHead className="font-bold w-[15%] text-[11px] uppercase px-2">User</TableHead>
+                    <TableHead className="font-bold w-[20%] text-[11px] uppercase px-2">Notes</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {transactions.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).map((tx) => (
+                    <TableRow key={tx.id} className="print:border-black/10 border-b hover:bg-muted/5 transition-colors">
+                      <TableCell className="whitespace-nowrap font-bold text-[10px] uppercase leading-tight px-2">
+                        <div className="flex flex-col">
+                          <span className="text-muted-foreground">{format(new Date(tx.createdAt), "MM/dd")}</span>
+                          <span className="text-foreground">{format(new Date(tx.createdAt), "hh:mm a")}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="font-black text-primary uppercase tracking-tight text-xs sm:text-sm px-2">
+                        {tx.subcategoryName}
+                      </TableCell>
+                      <TableCell className="px-2">
+                        <span className={`font-black text-[9px] px-1.5 py-0.5 rounded-sm border ${tx.type === 'IN' ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-red-50 border-red-200 text-red-700'}`}>
+                          {tx.type}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-right font-mono font-black text-xs px-2">
+                        <span className={tx.type === "IN" ? "text-emerald-600" : "text-red-600"}>
+                          {tx.type === "IN" ? "+" : "-"}{tx.quantity}
+                        </span>
+                        <span className="text-[9px] ml-0.5 text-muted-foreground uppercase">{tx.unit}</span>
+                      </TableCell>
+                      <TableCell className="text-[10px] font-black uppercase tracking-tighter text-muted-foreground px-2">{tx.username}</TableCell>
+                      <TableCell className="text-[10px] text-muted-foreground print:text-black/70 font-bold leading-tight px-2 truncate max-w-[80px] sm:max-w-none">
+                        {tx.notes || "-"}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             </div>
           ) : (
             <div className="text-center py-20">
@@ -272,10 +264,10 @@ export default function Reports() {
 
       <div className="hidden print:block text-center mt-8 pt-4 border-t border-gray-100 text-muted-foreground text-[10px] font-bold uppercase tracking-wider">
         (Designed and Managed by{" "}
-        <a 
-          href="https://babarcheema-portfolio.netlify.app/" 
-          target="_blank" 
-          rel="noopener noreferrer" 
+        <a
+          href="https://babarcheema-portfolio.netlify.app/"
+          target="_blank"
+          rel="noopener noreferrer"
           className="text-blue-600 underline"
         >
           BABAR CHEEMA

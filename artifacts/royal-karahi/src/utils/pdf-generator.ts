@@ -74,31 +74,40 @@ export function generatePDF({
     
     didDrawPage: (data) => {
       // Header on every page
-      doc.setFontSize(22);
+      doc.setFontSize(24);
       doc.setTextColor(...secondaryColor);
       doc.setFont("helvetica", "bold");
-      doc.text("ROYAL KARAHI", 14, 20);
+      doc.text("ROYAL KARAHI", 14, 22);
 
-      doc.setFontSize(14);
+      // Add a small divider line under the brand name
+      doc.setDrawColor(...secondaryColor);
+      doc.setLineWidth(0.5);
+      doc.line(14, 25, 60, 25);
+
+      doc.setFontSize(16);
       doc.setTextColor(40, 40, 40);
-      doc.text(title, 14, 30);
+      doc.setFont("helvetica", "bold");
+      doc.text(title.toUpperCase(), 14, 34);
 
       if (subtitle) {
-        doc.setFontSize(9);
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "normal");
         doc.setTextColor(...mutedColor);
-        doc.text(subtitle, 14, 38);
+        doc.text(subtitle, 14, 41);
       }
 
       doc.setFontSize(8);
+      doc.setFont("helvetica", "italic");
       doc.setTextColor(...mutedColor);
-      doc.text(`Generated on: ${dateStr}`, 14, 44);
+      doc.text(`Generated on: ${dateStr}`, 14, 47);
 
       // Footer - Page numbers
       let str = "Page " + doc.internal.getNumberOfPages();
       if (typeof doc.putTotalPages === "function") {
         str = str + " of " + totalPagesExp;
       }
-      doc.setFontSize(9);
+      doc.setFontSize(8);
+      doc.setFont("helvetica", "normal");
       const pageSize = doc.internal.pageSize;
       const pageHeight = pageSize.height ? pageSize.height : pageSize.getHeight();
       doc.text(str, data.settings.margin.left, pageHeight - 10);
