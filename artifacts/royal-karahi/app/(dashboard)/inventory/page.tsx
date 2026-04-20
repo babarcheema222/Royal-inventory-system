@@ -227,7 +227,7 @@ export default function Inventory() {
         </div>
       )}
 
-      <Dialog open={txDialog?.isOpen} onOpenChange={(open) => !open && setTxDialog(null)}>
+      <Dialog open={!!txDialog?.isOpen} onOpenChange={(open) => !open && setTxDialog(null)}>
         <DialogContent className="text-gray-800">
           <form onSubmit={handleTransaction}>
             <DialogHeader>

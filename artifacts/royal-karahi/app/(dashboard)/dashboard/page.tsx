@@ -174,13 +174,20 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             {loadingSummary ? (
-              <Skeleton className="h-8 w-16 mb-2" />
+              <Skeleton className="h-10 w-24 mb-2" />
             ) : (
-              <div className="text-3xl font-bold">{summary?.totalItems || 0}</div>
+              <div className="flex flex-col">
+                <div className="text-5xl font-black text-primary tracking-tighter">
+                  {summary?.totalItems || 0}
+                </div>
+                <div className="text-xs font-bold text-muted-foreground uppercase tracking-widest mt-1">
+                  Total Sub-categories
+                </div>
+                <p className="text-[10px] text-muted-foreground mt-4 italic font-medium">
+                  Across all system categories
+                </p>
+              </div>
             )}
-            <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-              Unique items tracked <ArrowRight className="w-3 h-3" />
-            </p>
           </CardContent>
         </Card>
 

@@ -7,6 +7,7 @@ import { signOut } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { SidebarContent } from "./Sidebar";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetTrigger } from "@/components/ui/sheet";
+import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/lib/auth";
 
 export function TopNav() {
@@ -14,7 +15,7 @@ export function TopNav() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   return (
-    <header className="h-16 border-b border-border bg-card flex items-center justify-between px-6 no-print flex-shrink-0">
+    <header className="h-16 border-b border-border bg-card flex items-center justify-between px-3 sm:px-6 no-print flex-shrink-0">
       <div className="flex items-center gap-2">
         {isAnyAdmin && (
           <div className="md:hidden mr-2">
@@ -35,30 +36,35 @@ export function TopNav() {
             </Sheet>
           </div>
         )}
-        
+
         {/* Logo - always show or at least for consistency */}
-        <div className="flex items-center gap-3">
-          <img 
-            src="/logo.jpeg" 
-            alt="Royal Karahi Logo" 
-            className="h-11 w-11 object-contain rounded-sm"
+        <div className="flex items-center gap-2 sm:gap-3">
+          <img
+            src="/logo.jpeg"
+            alt="Royal Karahi Logo"
+            className="h-8 w-8 sm:h-11 sm:w-11 object-contain rounded-sm"
           />
-          <h1 className="text-xl md:text-2xl font-black text-primary tracking-tighter leading-tight uppercase">
-            Royal<br className="md:hidden" /> Karahi
+          <h1 className="text-sm sm:text-xl font-black text-primary tracking-tighter leading-none uppercase truncate">
+            Royal Karahi
           </h1>
         </div>
       </div>
 
       <div className="flex items-center gap-4">
-        <div className="flex flex-col items-end text-right mr-2 sm:mr-0">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground leading-tight">
-            Logged in as <span className="text-foreground font-black">{user?.username}</span>
-          </span>
+        <div className="flex flex-col items-end text-right min-w-0">
+          <div className="flex items-center gap-1.5">
+            <span className="text-[10px] sm:text-sm font-black text-foreground truncate max-w-[80px] sm:max-w-none">
+              {user?.username}
+            </span>
+            <div className="h-6 w-6 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-black text-[10px] shadow-inner flex-shrink-0">
+              {user?.username?.charAt(0).toUpperCase()}
+            </div>
+          </div>
           <span className={cn(
-            "text-xs font-black uppercase tracking-widest mt-0.5",
-            user?.role === 'admin' ? 'text-primary' : 
-            user?.role === 'manager' ? 'text-amber-600' : 
-            'text-blue-600'
+            "text-[8px] sm:text-[10px] font-black uppercase tracking-widest mt-0.5",
+            user?.role === 'admin' ? 'text-primary' :
+              user?.role === 'manager' ? 'text-amber-600' :
+                'text-blue-600'
           )}>
             {user?.role === 'user' ? 'Staff' : user?.role}
           </span>
