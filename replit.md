@@ -20,7 +20,7 @@ Royal Karahi Stock Inventory Management System — a full-stack production-ready
 
 ## Application Features
 
-### Admin (login: admin / admin123)
+### Admin (login: Royal / Admin786)
 - Dashboard with inventory summary, low stock alerts, recent transactions
 - Category & Subcategory management (create/delete)
 - Daily and date-range stock reports with PDF export (browser print)
@@ -53,7 +53,7 @@ artifacts-monorepo/
 
 ## Default Credentials
 
-- **Admin**: username `admin`, password `admin123`
+- **Admin**: username `Royal`, password `Admin786`
 - **Staff**: username `staff1`, password `staff123`
 
 ## API Routes

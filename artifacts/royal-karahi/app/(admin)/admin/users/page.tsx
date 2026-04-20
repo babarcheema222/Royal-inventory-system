@@ -9,6 +9,7 @@ import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Trash2, UserPlus, Shield, User, LayoutDashboard, Key, PencilLine } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
@@ -25,6 +26,8 @@ export default function Users() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState<"admin" | "user" | "manager">("user");
+  const [editingUser, setEditingUser] = useState<{ id: number; username: string } | null>(null);
+  const [newPassword, setNewPassword] = useState("");
 
 
   if (authLoading) {
@@ -65,6 +68,8 @@ export default function Users() {
   const updatePasswordMutation = api.user.updatePassword.useMutation({
     onSuccess: () => {
       toast.success("Password updated successfully", { duration: 1500 });
+      setEditingUser(null);
+      setNewPassword("");
       utils.user.list.invalidate();
     },
     onError: (err) => {
@@ -87,10 +92,10 @@ export default function Users() {
     }
   };
 
-  const handleUpdatePassword = (id: number, username: string) => {
-    const newPassword = prompt(`Enter new password for ${username}:`);
-    if (newPassword && newPassword.trim() !== "") {
-      updatePasswordMutation.mutate({ id, password: newPassword.trim() });
+  const handleUpdatePassword = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (editingUser && newPassword.trim() !== "") {
+      updatePasswordMutation.mutate({ id: editingUser.id, password: newPassword.trim() });
     }
   };
 
@@ -145,8 +150,13 @@ export default function Users() {
               
               <div className="space-y-2">
                 <Label htmlFor="role" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Access Level</Label>
-                <Select value={role} onValueChange={(v: "admin" | "user" | "manager") => setRole(v)} disabled={createUserMutation.isPending}>
-                  <SelectTrigger id="role" name="role" className="font-medium" aria-label="Access Level">
+                <Select 
+                  name="role" 
+                  value={role} 
+                  onValueChange={(v: "admin" | "user" | "manager") => setRole(v)} 
+                  disabled={createUserMutation.isPending}
+                >
+                  <SelectTrigger id="role" className="font-medium" aria-label="Access Level">
                     <SelectValue placeholder="Select role" />
                   </SelectTrigger>
                   <SelectContent>
@@ -209,11 +219,22 @@ export default function Users() {
                           size="icon"
                           className="h-8 w-8 text-destructive hover:bg-destructive/10 transition-colors"
                           onClick={() => handleDeleteUser(u.id)}
-                          disabled={deleteUserMutation.isPending || String(u.id) === currentUser?.id}
-                          title={String(u.id) === currentUser?.id ? "Cannot delete yourself" : "Delete User"}
-                          aria-label={String(u.id) === currentUser?.id ? "Cannot delete yourself" : "Delete User"}
+                          disabled={deleteUserMutation.isPending || u.username === 'Royal'}
+                          title={u.username === 'Royal' ? "Cannot delete default admin" : "Delete User"}
+                          aria-label={u.username === 'Royal' ? "Cannot delete default admin" : "Delete User"}
                         >
                           <Trash2 className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-primary hover:bg-primary/10 transition-colors"
+                          onClick={() => setEditingUser({ id: u.id, username: u.username })}
+                          disabled={u.username === 'Royal'}
+                          title={u.username === 'Royal' ? "Cannot change default admin password here" : "Change Password"}
+                          aria-label={u.username === 'Royal' ? "Cannot change default admin password here" : "Change Password"}
+                        >
+                          <Key className="h-4 w-4" />
                         </Button>
                       </TableCell>
                     </TableRow>
@@ -224,6 +245,50 @@ export default function Users() {
           </CardContent>
         </Card>
       </div>
+
+      <Dialog open={!!editingUser} onOpenChange={(open) => !open && setEditingUser(null)}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Key className="h-5 w-5 text-primary" />
+              Update Password
+            </DialogTitle>
+            <DialogDescription>
+              Change password for <span className="font-bold text-primary">{editingUser?.username}</span>
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleUpdatePassword} className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="new-password">New Password</Label>
+              <PasswordInput
+                id="new-password"
+                name="newPassword"
+                placeholder="Enter new password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                required
+                autoFocus
+              />
+            </div>
+            <DialogFooter className="pt-4">
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => setEditingUser(null)}
+                disabled={updatePasswordMutation.isPending}
+              >
+                Cancel
+              </Button>
+              <Button 
+                type="submit"
+                disabled={updatePasswordMutation.isPending || !newPassword.trim()}
+              >
+                {updatePasswordMutation.isPending ? "Updating..." : "Update Password"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
