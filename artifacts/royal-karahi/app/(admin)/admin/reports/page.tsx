@@ -20,9 +20,15 @@ export default function Reports() {
     to: todayStr,
   });
 
+  const fromDate = useMemo(() => parseISO(dateRange.from + "T00:00:00"), [dateRange.from]);
+  const toDate = useMemo(() => parseISO(dateRange.to + "T23:59:59"), [dateRange.to]);
+
   const { data: transactions, isLoading } = api.inventory.getTransactions.useQuery({
-    from: parseISO(dateRange.from + "T00:00:00"),
-    to: parseISO(dateRange.to + "T23:59:59")
+    from: fromDate,
+    to: toDate
+  }, {
+    staleTime: 30000,
+    refetchOnMount: false
   });
 
   const summary = transactions ? {

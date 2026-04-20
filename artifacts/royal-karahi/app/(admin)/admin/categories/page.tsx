@@ -11,7 +11,9 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 
 export default function Categories() {
-  const { data: categories, isLoading, refetch } = api.inventory.getCategories.useQuery();
+  const { data: categories, isLoading } = api.inventory.getCategories.useQuery(undefined, {
+    staleTime: 30000
+  });
   const utils = api.useUtils();
 
   const createCatMutation = api.inventory.createCategory.useMutation({
@@ -100,9 +102,10 @@ export default function Categories() {
                 id="catName"
                 name="categoryName"
                 autoComplete="off"
-                placeholder="e.g., Meats, Vegetables"
+                placeholder="e.g., MEATS, VEGETABLES"
+                className="uppercase font-bold tracking-wide"
                 value={newCatName}
-                onChange={(e) => setNewCatName(e.target.value)}
+                onChange={(e) => setNewCatName(e.target.value.toUpperCase())}
                 required
                 aria-required="true"
                 disabled={createCatMutation.isPending}
@@ -143,7 +146,7 @@ export default function Categories() {
               <Card key={category.id} className="shadow-sm flex flex-col text-gray-800">
                 <CardHeader className="bg-muted/30 border-b flex flex-row items-center justify-between pb-4">
                   <div className="space-y-1">
-                    <CardTitle className="text-xl">{category.name}</CardTitle>
+                    <CardTitle className="text-xl uppercase font-black tracking-tight">{category.name}</CardTitle>
                     <p className="text-xs font-bold text-primary uppercase tracking-tighter">Unit: {(category as any).unit}</p>
                   </div>
                     <Button

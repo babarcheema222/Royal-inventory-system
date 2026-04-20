@@ -18,8 +18,9 @@ import { useAuth } from "@/lib/auth";
 
 export default function Users() {
   const { user: currentUser, isAdmin, isLoading: authLoading } = useAuth();
-  const { data: users, isLoading, refetch } = api.user.list.useQuery(undefined, {
-    enabled: !!isAdmin
+  const { data: users, isLoading } = api.user.list.useQuery(undefined, {
+    enabled: !!isAdmin,
+    staleTime: 60000
   });
   const utils = api.useUtils();
 

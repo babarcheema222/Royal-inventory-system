@@ -14,15 +14,14 @@ export function TopNav() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   return (
-    <header className="h-16 border-b border-border bg-card flex items-center justify-between px-6 no-print flex-shrink-0">
+    <header className="h-16 border-b border-border bg-card flex items-center justify-between px-3 md:px-6 no-print flex-shrink-0">
       <div className="flex items-center gap-2">
         {isAnyAdmin && (
-          <div className="md:hidden mr-2">
+          <div className="md:hidden mr-0">
             <Sheet open={isSidebarOpen} onOpenChange={setIsSidebarOpen}>
               <SheetTrigger asChild>
-                <Button variant="ghost" className="h-10 px-2 flex items-center gap-2">
+                <Button variant="ghost" className="h-10 px-1 md:px-2 flex items-center gap-1">
                   <Menu className="h-6 w-6" />
-                  <span className="text-xs font-bold uppercase">Menu</span>
                 </Button>
               </SheetTrigger>
               <SheetContent side="left" className="p-0 w-64 border-none [&>button]:hidden">
@@ -36,12 +35,11 @@ export function TopNav() {
           </div>
         )}
         
-        {/* Logo - always show or at least for consistency */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 md:gap-3">
           <img 
             src="/logo.jpeg" 
             alt="Royal Karahi Logo" 
-            className="h-11 w-11 object-contain rounded-sm"
+            className="h-9 w-9 md:h-11 md:w-11 object-contain rounded-sm"
           />
           <h1 className="text-xl md:text-2xl font-black text-primary tracking-tighter leading-tight uppercase">
             Royal<br className="md:hidden" /> Karahi
@@ -49,13 +47,14 @@ export function TopNav() {
         </div>
       </div>
 
-      <div className="flex items-center gap-4">
-        <div className="flex flex-col items-end text-right mr-2 sm:mr-0">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground leading-tight">
-            Logged in as <span className="text-foreground font-black">{user?.username}</span>
+      <div className="flex items-center gap-4 min-w-0">
+        <div className="flex flex-col items-end text-right min-w-0">
+          <span className="text-[9px] md:text-[10px] font-bold uppercase tracking-wider text-muted-foreground leading-tight truncate max-w-[80px] sm:max-w-none">
+            <span className="hidden xs:inline">Logged in as </span>
+            <span className="text-foreground font-black">{user?.username}</span>
           </span>
           <span className={cn(
-            "text-xs font-black uppercase tracking-widest mt-0.5",
+            "text-[10px] md:text-xs font-black uppercase tracking-widest mt-0.5",
             user?.role === 'admin' ? 'text-primary' : 
             user?.role === 'manager' ? 'text-amber-600' : 
             'text-blue-600'
