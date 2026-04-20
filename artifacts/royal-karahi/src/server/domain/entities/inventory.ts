@@ -16,10 +16,15 @@ export interface Subcategory {
 
 export interface Transaction {
   id: number;
-  subcategoryId: number;
+  subcategoryId: number | null;
+  itemName: string;
+  subcategoryName: string;
+  categoryName: string;
+  unit: string;
   type: "IN" | "OUT";
   quantity: number;
   notes: string | null;
+  isCleared: boolean;
   userId: number;
   createdAt: Date;
 }

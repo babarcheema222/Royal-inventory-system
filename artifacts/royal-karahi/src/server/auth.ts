@@ -16,11 +16,13 @@ declare module "next-auth" {
     user: {
       id: string;
       role: "admin" | "user" | "manager";
+      isSuperAdmin: boolean;
     } & DefaultSession["user"];
   }
 
   interface User {
     role: "admin" | "user" | "manager";
+    isSuperAdmin: boolean;
   }
 }
 
@@ -32,11 +34,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         ...session.user,
         id: token.sub,
         role: token.role as "admin" | "user",
+        isSuperAdmin: !!token.isSuperAdmin,
       },
     }),
     jwt: ({ token, user }) => {
       if (user) {
         token.role = user.role;
+        token.isSuperAdmin = user.isSuperAdmin;
       }
       return token;
     },
@@ -56,6 +60,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             id: usersTable.id,
             username: usersTable.username,
             role: usersTable.role,
+            isSuperAdmin: usersTable.isSuperAdmin,
             passwordHash: usersTable.passwordHash,
           })
           .from(usersTable)
@@ -74,6 +79,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           id: user.id.toString(),
           name: user.username,
           role: user.role as "admin" | "user",
+          isSuperAdmin: user.isSuperAdmin,
         };
       },
     }),

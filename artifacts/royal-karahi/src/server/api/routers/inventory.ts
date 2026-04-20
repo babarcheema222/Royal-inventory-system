@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { createTRPCRouter, protectedProcedure, managerProcedure } from "@/server/api/trpc";
+import { createTRPCRouter, protectedProcedure, managerProcedure, superAdminProcedure } from "@/server/api/trpc";
 import { DrizzleInventoryRepository } from "@/server/infrastructure/persistence/drizzle-inventory-repository";
 import { InventoryService } from "@/server/application/inventory-service";
 import { ProductionLogger } from "@/lib/error-handler";
@@ -111,5 +111,13 @@ export const inventoryRouter = createTRPCRouter({
         ...input,
         userId: Number(ctx.session.user.id)
       });
+    }),
+
+  clearHistory: superAdminProcedure
+    .mutation(async ({ ctx }) => {
+      ProductionLogger.info(`[Audit] History cleared by Super Admin:${ctx.session.user.id}`, {
+        userId: ctx.session.user.id
+      });
+      return getService(ctx.db).clearHistory();
     }),
 });

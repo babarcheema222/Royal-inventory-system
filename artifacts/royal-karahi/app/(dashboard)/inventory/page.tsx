@@ -8,10 +8,12 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Search, AlertCircle, Plus, Minus, ChevronDown, ChevronRight } from "lucide-react";
+import { Search, AlertCircle, Plus, Minus, ChevronDown, ChevronRight, AlertTriangle, Download } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { format } from "date-fns";
+import { generatePDF } from "@/utils/pdf-generator";
 
 import { useDebounce } from "@/hooks/use-debounce";
 
@@ -24,6 +26,12 @@ export default function Inventory() {
   );
   const [txDialog, setTxDialog] = useState<{ isOpen: boolean; subcategoryId: number; name: string; type: "IN" | "OUT"; unit: string } | null>(null);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [criticalDialog, setCriticalDialog] = useState(false);
+  const [criticalSearch, setCriticalSearch] = useState("");
+
+  const { data: lowStockItems, isLoading: isLoadingLowStock } = api.inventory.getLowStock.useQuery(undefined, {
+    enabled: criticalDialog
+  });
 
   const [quantity, setQuantity] = useState("");
   const [notes, setNotes] = useState("");
@@ -73,6 +81,33 @@ export default function Inventory() {
     setActiveCategory(prev => (prev === cat ? null : cat));
   };
 
+  const filteredLowStock = lowStockItems?.filter(item => 
+    item.name.toLowerCase().includes(criticalSearch.toLowerCase()) || 
+    item.categoryName.toLowerCase().includes(criticalSearch.toLowerCase())
+  ) || [];
+
+  const handleDownloadCriticalPDF = () => {
+    if (!lowStockItems || lowStockItems.length === 0) return;
+
+    const head = [["Category", "Item Name", "Current Stock", "Unit", "Status"]];
+    const body = lowStockItems.map(item => [
+      item.categoryName,
+      item.name,
+      Number(item.currentStock).toFixed(2),
+      item.unit,
+      "LOW STOCK"
+    ]);
+
+    generatePDF({
+      title: "Critical Stock Report",
+      subtitle: `Generated on ${format(new Date(), "PPP p")}`,
+      fileName: `CRITICAL-STOCK-${format(new Date(), "yyyy-MM-dd")}.pdf`,
+      head,
+      body,
+      showSignature: true
+    });
+  };
+
   // Auto-expand first matching category on search
   useEffect(() => {
     if (search.trim() && items && Object.keys(groupedItems).length > 0) {
@@ -90,18 +125,27 @@ export default function Inventory() {
           <h1 className="text-3xl font-bold text-primary tracking-tight">Stock Inventory</h1>
           <p className="text-muted-foreground mt-1">Manage kitchen stock quantities.</p>
         </div>
-        <div className="relative w-full sm:w-72">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Label htmlFor="inventory-search" className="sr-only">Search items</Label>
-          <Input 
-            id="inventory-search"
-            name="search"
-            autoComplete="off"
-            placeholder="Search items..." 
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-9 h-11"
-          />
+        <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+          <Button 
+            variant="outline" 
+            className="border-destructive/30 text-destructive hover:bg-destructive/10 font-bold uppercase tracking-wider h-11"
+            onClick={() => setCriticalDialog(true)}
+          >
+            <AlertTriangle className="h-4 w-4 mr-2" /> Critical Stock
+          </Button>
+          <div className="relative w-full sm:w-72">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Label htmlFor="inventory-search" className="sr-only">Search items</Label>
+            <Input 
+              id="inventory-search"
+              name="search"
+              autoComplete="off"
+              placeholder="Search items..." 
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-9 h-11 shadow-sm"
+            />
+          </div>
         </div>
       </div>
 
@@ -286,6 +330,87 @@ export default function Inventory() {
               </Button>
             </DialogFooter>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={criticalDialog} onOpenChange={setCriticalDialog}>
+        <DialogContent className="max-w-2xl text-gray-800 p-0 overflow-hidden rounded-2xl border-0 shadow-2xl">
+          <div className="bg-destructive/5 p-6 border-b border-destructive/10">
+            <DialogHeader>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="bg-destructive/10 p-2 rounded-xl">
+                    <AlertTriangle className="h-6 w-6 text-destructive" />
+                  </div>
+                  <div>
+                    <DialogTitle className="text-2xl font-black uppercase tracking-tight text-destructive">Critical Stock</DialogTitle>
+                    <DialogDescription className="font-bold text-[10px] uppercase tracking-[0.2em] text-destructive/60">
+                      Items requiring immediate attention
+                    </DialogDescription>
+                  </div>
+                </div>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="border-destructive/20 text-destructive hover:bg-destructive/10 h-9 font-bold"
+                  onClick={handleDownloadCriticalPDF}
+                  disabled={isLoadingLowStock || !lowStockItems?.length}
+                >
+                  <Download className="h-4 w-4 mr-2" /> PDF Report
+                </Button>
+              </div>
+            </DialogHeader>
+          </div>
+
+          <div className="p-6 space-y-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input 
+                placeholder="Search critical items..." 
+                className="pl-9 h-11 bg-muted/50 border-0 focus-visible:ring-1"
+                value={criticalSearch}
+                onChange={(e) => setCriticalSearch(e.target.value)}
+              />
+            </div>
+
+            <div className="max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
+              {isLoadingLowStock ? (
+                <div className="flex flex-col items-center justify-center py-12 gap-4">
+                  <div className="h-8 w-8 border-4 border-destructive/20 border-t-destructive rounded-full animate-spin" />
+                  <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Checking stock levels...</p>
+                </div>
+              ) : filteredLowStock.length > 0 ? (
+                <div className="space-y-2">
+                  {filteredLowStock.map(item => (
+                    <div key={item.id} className="flex items-center justify-between p-4 rounded-xl bg-muted/30 border-2 border-transparent hover:border-destructive/20 hover:bg-destructive/[0.02] transition-all group">
+                      <div className="space-y-1">
+                        <p className="text-[9px] font-black text-destructive/60 uppercase tracking-widest leading-none">{item.categoryName}</p>
+                        <h4 className="font-black text-foreground uppercase tracking-tight leading-tight">{item.name}</h4>
+                        <p className="text-[10px] font-bold text-muted-foreground">ID: {item.id}</p>
+                      </div>
+                      <div className="text-right">
+                        <div className="flex flex-col items-end">
+                          <span className="text-lg font-black text-destructive leading-none">{Number(item.currentStock).toFixed(2)}</span>
+                          <span className="text-[10px] font-black uppercase text-muted-foreground leading-tight tracking-tighter">{item.unit} LEFT</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-16 bg-muted/20 rounded-2xl border-2 border-dashed">
+                  <AlertCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4 opacity-20" />
+                  <p className="font-black text-muted-foreground uppercase tracking-widest">No matching items</p>
+                </div>
+              )}
+            </div>
+          </div>
+          
+          <div className="p-4 bg-muted/30 border-t flex justify-end">
+            <Button variant="secondary" className="font-bold uppercase tracking-widest text-[10px]" onClick={() => setCriticalDialog(false)}>
+              Close Monitor
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

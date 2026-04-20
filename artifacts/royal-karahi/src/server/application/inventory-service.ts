@@ -48,4 +48,8 @@ export class InventoryService {
   async logTransaction(data: { subcategoryId: number; type: "IN" | "OUT"; quantity: number; notes?: string | null; userId: number }) {
     return this.repository.createTransaction(data);
   }
+
+  async clearHistory() {
+    return this.repository.clearAllHistory();
+  }
 }

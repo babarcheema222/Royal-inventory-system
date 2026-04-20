@@ -146,6 +146,19 @@ export const roleProcedure = (roles: string[]) =>
 export const adminProcedure = roleProcedure(["admin"]);
 
 /**
+ * Super Admin procedure (Admin + Super Admin privilege)
+ */
+export const superAdminProcedure = protectedProcedure.use(({ ctx, next }) => {
+  if (ctx.session.user.role !== "admin" || !ctx.session.user.isSuperAdmin) {
+    throw new TRPCError({ 
+      code: "FORBIDDEN", 
+      message: "Insufficient permissions. Requires Super Admin privileges." 
+    });
+  }
+  return next();
+});
+
+/**
  * Manager procedure (Admin or Manager)
  */
 export const managerProcedure = roleProcedure(["admin", "manager"]);

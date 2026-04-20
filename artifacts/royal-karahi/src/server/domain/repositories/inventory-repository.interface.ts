@@ -19,4 +19,5 @@ export interface IInventoryRepository {
   // Transactions
   getTransactions(from: Date, to: Date, limit?: number, offset?: number): Promise<(Transaction & { subcategoryName: string; categoryName: string; unit: string; username: string })[]>;
   createTransaction(data: { subcategoryId: number; type: "IN" | "OUT"; quantity: number; notes?: string | null; userId: number }): Promise<Transaction>;
+  clearAllHistory(): Promise<void>;
 }

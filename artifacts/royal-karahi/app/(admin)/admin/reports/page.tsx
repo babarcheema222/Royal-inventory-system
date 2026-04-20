@@ -9,7 +9,6 @@ import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { FileText, Download, BarChart3, CalendarDays } from "lucide-react";
 import { format, parseISO } from "date-fns";
-import { jsPDF } from "jspdf";
 import { generatePDF } from "@/utils/pdf-generator";
 
 export default function Reports() {

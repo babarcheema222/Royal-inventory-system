@@ -62,7 +62,10 @@ export class DrizzleInventoryRepository implements IInventoryRepository {
         .innerJoin(schema.categoriesTable, eq(schema.subcategoriesTable.categoryId, schema.categoriesTable.id))
         .where(lt(schema.subcategoriesTable.currentStock, 10)),
       this.db.select({ count: sql<number>`count(*)::int` }).from(schema.categoriesTable),
-      this.db.select({ count: sql<number>`count(*)::int` }).from(schema.transactionsTable).where(gte(schema.transactionsTable.createdAt, last24h))
+      this.db
+        .select({ count: sql<number>`count(*)::int` })
+        .from(schema.transactionsTable)
+        .where(and(gte(schema.transactionsTable.createdAt, last24h), eq(schema.transactionsTable.isCleared, false)))
     ]);
 
     return {
@@ -122,38 +125,62 @@ export class DrizzleInventoryRepository implements IInventoryRepository {
   }
 
   async getTransactions(from: Date, to: Date, limit: number = 100, offset: number = 0): Promise<(Transaction & { subcategoryName: string; categoryName: string; unit: string; username: string })[]> {
-    return this.db
+    const results = await this.db
       .select({
         id: schema.transactionsTable.id,
         subcategoryId: schema.transactionsTable.subcategoryId,
+        itemName: schema.transactionsTable.itemName,
+        subcategoryName: schema.transactionsTable.subcategoryName,
+        categoryName: schema.transactionsTable.categoryName,
+        unit: schema.transactionsTable.unit,
         type: schema.transactionsTable.type,
         quantity: schema.transactionsTable.quantity,
         notes: schema.transactionsTable.notes,
+        isCleared: schema.transactionsTable.isCleared,
         userId: schema.transactionsTable.userId,
         createdAt: schema.transactionsTable.createdAt,
-        subcategoryName: schema.subcategoriesTable.name,
-        categoryName: schema.categoriesTable.name,
-        unit: schema.categoriesTable.unit,
         username: schema.usersTable.username,
       })
       .from(schema.transactionsTable)
-      .innerJoin(schema.subcategoriesTable, eq(schema.transactionsTable.subcategoryId, schema.subcategoriesTable.id))
-      .innerJoin(schema.categoriesTable, eq(schema.subcategoriesTable.categoryId, schema.categoriesTable.id))
       .innerJoin(schema.usersTable, eq(schema.transactionsTable.userId, schema.usersTable.id))
-      .where(and(gte(schema.transactionsTable.createdAt, from), lte(schema.transactionsTable.createdAt, to)))
+      .where(and(
+        gte(schema.transactionsTable.createdAt, from), 
+        lte(schema.transactionsTable.createdAt, to),
+        eq(schema.transactionsTable.isCleared, false)
+      ))
       .orderBy(desc(schema.transactionsTable.createdAt))
       .limit(limit)
       .offset(offset);
+
+    // Map snapshot fields to the expected interface format
+    return results.map(row => ({
+      ...row,
+      subcategoryName: row.subcategoryName,
+      categoryName: row.categoryName,
+      unit: row.unit
+    })) as any;
   }
 
   async createTransaction(data: { subcategoryId: number; type: "IN" | "OUT"; quantity: number; notes?: string | null; userId: number }): Promise<Transaction> {
-    // Calculate the change as a positive or negative number
+    // 0. Fetch metadata for snapshotting
+    const [itemData] = await this.db
+      .select({
+        subcategoryName: schema.subcategoriesTable.name,
+        categoryName: schema.categoriesTable.name,
+        unit: schema.categoriesTable.unit,
+      })
+      .from(schema.subcategoriesTable)
+      .innerJoin(schema.categoriesTable, eq(schema.subcategoriesTable.categoryId, schema.categoriesTable.id))
+      .where(eq(schema.subcategoriesTable.id, data.subcategoryId));
+
+    if (!itemData) {
+      throw new Error("Subcategory not found.");
+    }
+
+    // 1. Calculate the change as a positive or negative number
     const quantityChange = data.type === "IN" ? data.quantity : -data.quantity;
     
-    // Update the stock level atomically using SQL template literal
-    // 1. We use ROUND(..., 2) to fix floating point precision issues
-    // 2. We use '::numeric' for reliable rounding in Postgres
-    // 3. The 'where' clause ensures we don't drop below 0 if it's an "OUT" transaction
+    // 2. Update the stock level atomically
     const updateResult = await this.db
       .update(schema.subcategoriesTable)
       .set({ 
@@ -166,14 +193,27 @@ export class DrizzleInventoryRepository implements IInventoryRepository {
           : undefined
       ));
 
-    // If no rows were updated, it means the stock was insufficient (or item not found)
     if (updateResult.rowCount === 0 && data.type === "OUT") {
       throw new Error("Insufficient stock to complete this transaction.");
     }
 
-    // Record the transaction only if the stock update was successful
-    const [transaction] = await this.db.insert(schema.transactionsTable).values(data).returning();
+    // 3. Record the transaction with snapshots
+    const [transaction] = await this.db.insert(schema.transactionsTable).values({
+      ...data,
+      itemName: itemData.subcategoryName, // Capture itemName as subcategory name
+      subcategoryName: itemData.subcategoryName,
+      categoryName: itemData.categoryName,
+      unit: itemData.unit,
+      isCleared: false,
+    }).returning();
 
     return transaction;
+  }
+
+  async clearAllHistory(): Promise<void> {
+    await this.db
+      .update(schema.transactionsTable)
+      .set({ isCleared: true })
+      .where(eq(schema.transactionsTable.isCleared, false));
   }
 }

@@ -5,6 +5,7 @@ export interface User {
   id: string;
   username: string;
   role: "admin" | "user" | "manager";
+  isSuperAdmin: boolean;
 }
 
 export function useAuth() {
@@ -22,6 +23,7 @@ export function useAuth() {
   const role = (session?.user as any)?.role?.toLowerCase();
   const isAdmin = role === "admin";
   const isManager = role === "manager";
+  const isSuperAdmin = !!(session?.user as any)?.isSuperAdmin;
 
   return {
     user,
@@ -29,6 +31,7 @@ export function useAuth() {
     isLoading: status === "loading",
     isAdmin,
     isManager,
+    isSuperAdmin,
     isAnyAdmin: isAdmin || isManager,
     logout: () => signOut({ callbackUrl: "/login" }),
     // Compatibility with old code
