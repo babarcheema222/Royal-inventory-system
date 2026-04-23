@@ -76,7 +76,7 @@ export class DrizzleInventoryRepository implements IInventoryRepository {
     };
   }
 
-  async listInventory(search?: string, limit: number = 50, offset: number = 0): Promise<(Subcategory & { categoryName: string; unit: string; isLowStock: boolean })[]> {
+  async listInventory(search?: string, limit: number = 1000, offset: number = 0): Promise<(Subcategory & { categoryName: string; unit: string; isLowStock: boolean })[]> {
     const s = search ? `%${search.toLowerCase()}%` : null;
 
     const result = await this.db
