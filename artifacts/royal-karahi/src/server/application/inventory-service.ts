@@ -25,6 +25,10 @@ export class InventoryService {
     return this.repository.createCategory({ name, unit });
   }
 
+  async updateCategory(id: number, name: string) {
+    return this.repository.updateCategory(id, name);
+  }
+
   async deleteCategory(id: number) {
     return this.repository.deleteCategory(id);
   }
@@ -35,6 +39,10 @@ export class InventoryService {
 
   async createSubcategory(name: string, categoryId: number) {
     return this.repository.createSubcategory({ name, categoryId });
+  }
+
+  async updateSubcategory(id: number, name: string) {
+    return this.repository.updateSubcategory(id, name);
   }
 
   async deleteSubcategory(id: number) {

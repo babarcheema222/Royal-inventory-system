@@ -4,11 +4,13 @@ export interface IInventoryRepository {
   // Categories
   getCategories(): Promise<Category[]>;
   createCategory(data: { name: string; unit: string }): Promise<Category>;
+  updateCategory(id: number, name: string): Promise<void>;
   deleteCategory(id: number): Promise<void>;
 
   // Subcategories
   getSubcategories(categoryId?: number): Promise<Subcategory[]>;
   createSubcategory(data: { name: string; categoryId: number }): Promise<Subcategory>;
+  updateSubcategory(id: number, name: string): Promise<void>;
   deleteSubcategory(id: number): Promise<void>;
 
   // Inventory

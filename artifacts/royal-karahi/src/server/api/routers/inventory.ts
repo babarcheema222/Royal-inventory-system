@@ -43,6 +43,16 @@ export const inventoryRouter = createTRPCRouter({
       return getService(ctx.db).createCategory(input.name, input.unit);
     }),
 
+  updateCategory: managerProcedure
+    .input(z.object({ id: z.number(), name: z.string().min(1) }))
+    .mutation(async ({ ctx, input }) => {
+      ProductionLogger.info(`[Audit] Category update by ${ctx.session.user.role}:${ctx.session.user.id}`, {
+        userId: ctx.session.user.id,
+        metadata: { categoryId: input.id, name: input.name }
+      });
+      return getService(ctx.db).updateCategory(input.id, input.name);
+    }),
+
   deleteCategory: managerProcedure
     .input(z.object({ id: z.number() }))
     .mutation(async ({ ctx, input }) => {
@@ -68,6 +78,16 @@ export const inventoryRouter = createTRPCRouter({
         metadata: { name: input.name, categoryId: input.categoryId }
       });
       return getService(ctx.db).createSubcategory(input.name, input.categoryId);
+    }),
+
+  updateSubcategory: managerProcedure
+    .input(z.object({ id: z.number(), name: z.string().min(1) }))
+    .mutation(async ({ ctx, input }) => {
+      ProductionLogger.info(`[Audit] Subcategory update by ${ctx.session.user.role}:${ctx.session.user.id}`, {
+        userId: ctx.session.user.id,
+        metadata: { subcategoryId: input.id, name: input.name }
+      });
+      return getService(ctx.db).updateSubcategory(input.id, input.name);
     }),
 
   deleteSubcategory: managerProcedure

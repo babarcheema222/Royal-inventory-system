@@ -6,9 +6,10 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Trash2, Plus } from "lucide-react";
+import { Trash2, Plus, Pencil } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 
 export default function Categories() {
   const { data: categories, isLoading, refetch } = api.inventory.getCategories.useQuery();
@@ -44,6 +45,25 @@ export default function Categories() {
     }
   });
 
+  const updateCatMutation = api.inventory.updateCategory.useMutation({
+    onSuccess: () => {
+      toast.success("Category updated", { duration: 1500 });
+      utils.inventory.getCategories.invalidate();
+      setEditModal(null);
+    }
+  });
+
+  const updateSubMutation = api.inventory.updateSubcategory.useMutation({
+    onSuccess: () => {
+      toast.success("Item updated", { duration: 1500 });
+      utils.inventory.getCategories.invalidate();
+      setEditModal(null);
+    }
+  });
+
+  const [editModal, setEditModal] = useState<{ isOpen: boolean; type: 'category' | 'subcategory'; id: number; name: string } | null>(null);
+  const [editName, setEditName] = useState("");
+
   const [newCatName, setNewCatName] = useState("");
   const [newCatUnit, setNewCatUnit] = useState("Kg");
   const [newSubNames, setNewSubNames] = useState<Record<number, string>>({});
@@ -77,6 +97,17 @@ export default function Categories() {
   const handleDeleteSubcategory = (id: number) => {
     if (confirm("Are you sure you want to delete this item?")) {
       deleteSubMutation.mutate({ id });
+    }
+  };
+
+  const handleEditSave = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editModal || !editName.trim()) return;
+    
+    if (editModal.type === 'category') {
+      updateCatMutation.mutate({ id: editModal.id, name: editName.trim() });
+    } else {
+      updateSubMutation.mutate({ id: editModal.id, name: editName.trim() });
     }
   };
 
@@ -146,6 +177,20 @@ export default function Categories() {
                     <CardTitle className="text-xl">{category.name}</CardTitle>
                     <p className="text-xs font-bold text-primary uppercase tracking-tighter">Unit: {(category as any).unit}</p>
                   </div>
+                  <div className="flex items-center gap-1">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="text-muted-foreground hover:text-primary hover:bg-primary/10"
+                      onClick={() => {
+                        setEditModal({ isOpen: true, type: 'category', id: category.id, name: category.name });
+                        setEditName(category.name);
+                      }}
+                      title="Edit Category"
+                      aria-label="Edit Category"
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
                     <Button
                       variant="ghost"
                       size="icon"
@@ -157,6 +202,7 @@ export default function Categories() {
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
+                  </div>
                 </CardHeader>
                 <CardContent className="pt-6 flex-1 flex flex-col">
                   <div className="space-y-2 mb-6 flex-1">
@@ -164,6 +210,20 @@ export default function Categories() {
                       (category as any).subcategories.map((sub: any) => (
                         <div key={sub.id} className="flex items-center justify-between p-2 rounded-md border bg-card hover:bg-muted/10 transition-colors">
                           <span className="font-medium text-sm">{sub.name} <span className="text-[10px] text-muted-foreground uppercase">({(category as any).unit})</span></span>
+                          <div className="flex items-center gap-1">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-muted-foreground hover:text-primary"
+                              onClick={() => {
+                                setEditModal({ isOpen: true, type: 'subcategory', id: sub.id, name: sub.name });
+                                setEditName(sub.name);
+                              }}
+                              aria-label="Edit Item"
+                              title="Edit Item"
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
                             <Button
                               variant="ghost"
                               size="icon"
@@ -175,6 +235,7 @@ export default function Categories() {
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>
+                          </div>
                         </div>
                       ))
                     ) : (
@@ -208,6 +269,43 @@ export default function Categories() {
           </div>
         )}
       </div>
+
+      <Dialog open={!!editModal?.isOpen} onOpenChange={(open) => !open && setEditModal(null)}>
+        <DialogContent className="text-gray-800">
+          <form onSubmit={handleEditSave}>
+            <DialogHeader>
+              <DialogTitle>
+                Edit {editModal?.type === 'category' ? 'Category' : 'Item'}
+              </DialogTitle>
+              <DialogDescription>
+                Update the name and click save to apply changes.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="py-6">
+              <div className="space-y-2">
+                <Label htmlFor="editName">Name</Label>
+                <Input
+                  id="editName"
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  placeholder="Enter new name"
+                  required
+                  autoFocus
+                  autoComplete="off"
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setEditModal(null)}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={updateCatMutation.isPending || updateSubMutation.isPending || !editName.trim()}>
+                {(updateCatMutation.isPending || updateSubMutation.isPending) ? "Saving..." : "Save Changes"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -22,6 +22,12 @@ export class DrizzleInventoryRepository implements IInventoryRepository {
     return category;
   }
 
+  async updateCategory(id: number, name: string): Promise<void> {
+    await this.db.update(schema.categoriesTable)
+      .set({ name })
+      .where(eq(schema.categoriesTable.id, id));
+  }
+
   async deleteCategory(id: number): Promise<void> {
     await this.db.delete(schema.categoriesTable).where(eq(schema.categoriesTable.id, id));
   }
@@ -37,6 +43,12 @@ export class DrizzleInventoryRepository implements IInventoryRepository {
   async createSubcategory(data: { name: string; categoryId: number }): Promise<Subcategory> {
     const [sub] = await this.db.insert(schema.subcategoriesTable).values(data).returning();
     return sub;
+  }
+
+  async updateSubcategory(id: number, name: string): Promise<void> {
+    await this.db.update(schema.subcategoriesTable)
+      .set({ name })
+      .where(eq(schema.subcategoriesTable.id, id));
   }
 
   async deleteSubcategory(id: number): Promise<void> {
