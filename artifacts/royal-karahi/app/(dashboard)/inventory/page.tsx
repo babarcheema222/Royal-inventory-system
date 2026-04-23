@@ -334,17 +334,17 @@ export default function Inventory() {
       </Dialog>
 
       <Dialog open={criticalDialog} onOpenChange={setCriticalDialog}>
-        <DialogContent className="max-w-2xl text-gray-800 p-0 overflow-hidden rounded-2xl border-0 shadow-2xl">
-          <div className="bg-destructive/5 p-6 border-b border-destructive/10">
+        <DialogContent className="max-w-2xl w-[95vw] sm:w-full max-h-[85vh] flex flex-col text-gray-800 p-0 overflow-hidden rounded-2xl border-0 shadow-2xl">
+          <div className="bg-destructive/5 p-4 sm:p-6 border-b border-destructive/10 shrink-0">
             <DialogHeader>
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
-                  <div className="bg-destructive/10 p-2 rounded-xl">
-                    <AlertTriangle className="h-6 w-6 text-destructive" />
+                  <div className="bg-destructive/10 p-2 rounded-xl shrink-0">
+                    <AlertTriangle className="h-5 w-5 sm:h-6 sm:w-6 text-destructive" />
                   </div>
-                  <div>
-                    <DialogTitle className="text-2xl font-black uppercase tracking-tight text-destructive">Critical Stock</DialogTitle>
-                    <DialogDescription className="font-bold text-[10px] uppercase tracking-[0.2em] text-destructive/60">
+                  <div className="text-left">
+                    <DialogTitle className="text-xl sm:text-2xl font-black uppercase tracking-tight text-destructive">Critical Stock</DialogTitle>
+                    <DialogDescription className="font-bold text-[9px] sm:text-[10px] uppercase tracking-[0.1em] sm:tracking-[0.2em] text-destructive/60">
                       Items requiring immediate attention
                     </DialogDescription>
                   </div>
@@ -352,7 +352,7 @@ export default function Inventory() {
                 <Button 
                   variant="outline" 
                   size="sm" 
-                  className="border-destructive/20 text-destructive hover:bg-destructive/10 h-9 font-bold"
+                  className="w-full sm:w-auto border-destructive/20 text-destructive hover:bg-destructive/10 h-9 font-bold"
                   onClick={handleDownloadCriticalPDF}
                   disabled={isLoadingLowStock || !lowStockItems?.length}
                 >
@@ -362,8 +362,8 @@ export default function Inventory() {
             </DialogHeader>
           </div>
 
-          <div className="p-6 space-y-4">
-            <div className="relative">
+          <div className="p-4 sm:p-6 space-y-4 flex-1 flex flex-col overflow-hidden">
+            <div className="relative shrink-0">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input 
                 placeholder="Search critical items..." 
@@ -373,7 +373,7 @@ export default function Inventory() {
               />
             </div>
 
-            <div className="max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
+            <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
               {isLoadingLowStock ? (
                 <div className="flex flex-col items-center justify-center py-12 gap-4">
                   <div className="h-8 w-8 border-4 border-destructive/20 border-t-destructive rounded-full animate-spin" />
@@ -406,8 +406,8 @@ export default function Inventory() {
             </div>
           </div>
           
-          <div className="p-4 bg-muted/30 border-t flex justify-end">
-            <Button variant="secondary" className="font-bold uppercase tracking-widest text-[10px]" onClick={() => setCriticalDialog(false)}>
+          <div className="p-4 bg-muted/30 border-t flex justify-end shrink-0">
+            <Button variant="secondary" className="w-full sm:w-auto font-bold uppercase tracking-widest text-[10px]" onClick={() => setCriticalDialog(false)}>
               Close Monitor
             </Button>
           </div>
