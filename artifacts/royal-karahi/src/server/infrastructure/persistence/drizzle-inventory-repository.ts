@@ -72,7 +72,7 @@ export class DrizzleInventoryRepository implements IInventoryRepository {
         .select({ count: sql<number>`count(*)::int` })
         .from(schema.subcategoriesTable)
         .innerJoin(schema.categoriesTable, eq(schema.subcategoriesTable.categoryId, schema.categoriesTable.id))
-        .where(lt(schema.subcategoriesTable.currentStock, 10)),
+        .where(lt(schema.subcategoriesTable.currentStock, 5)),
       this.db.select({ count: sql<number>`count(*)::int` }).from(schema.categoriesTable),
       this.db
         .select({ count: sql<number>`count(*)::int` })
@@ -110,7 +110,7 @@ export class DrizzleInventoryRepository implements IInventoryRepository {
 
     return result.map(item => ({
       ...item,
-      isLowStock: item.currentStock < 10
+      isLowStock: item.currentStock < 5
     }));
   }
 
@@ -127,7 +127,7 @@ export class DrizzleInventoryRepository implements IInventoryRepository {
       })
       .from(schema.subcategoriesTable)
       .innerJoin(schema.categoriesTable, eq(schema.subcategoriesTable.categoryId, schema.categoriesTable.id))
-      .where(lt(schema.subcategoriesTable.currentStock, 10))
+      .where(lt(schema.subcategoriesTable.currentStock, 5))
       .orderBy(schema.categoriesTable.name, schema.subcategoriesTable.name);
 
     return result.map(item => ({
