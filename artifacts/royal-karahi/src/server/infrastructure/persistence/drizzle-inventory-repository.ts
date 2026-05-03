@@ -136,8 +136,8 @@ export class DrizzleInventoryRepository implements IInventoryRepository {
     }));
   }
 
-  async getTransactions(from: Date, to: Date, limit: number = 100, offset: number = 0): Promise<(Transaction & { subcategoryName: string; categoryName: string; unit: string; username: string })[]> {
-    const results = await this.db
+  async getTransactions(from: Date, to: Date, limit?: number, offset: number = 0): Promise<(Transaction & { subcategoryName: string; categoryName: string; unit: string; username: string })[]> {
+    const resultsQuery = this.db
       .select({
         id: schema.transactionsTable.id,
         subcategoryId: schema.transactionsTable.subcategoryId,
@@ -161,8 +161,16 @@ export class DrizzleInventoryRepository implements IInventoryRepository {
         eq(schema.transactionsTable.isCleared, false)
       ))
       .orderBy(desc(schema.transactionsTable.createdAt))
-      .limit(limit)
-      .offset(offset);
+      .$dynamic();
+
+    if (limit) {
+      resultsQuery.limit(limit);
+    }
+    if (offset) {
+      resultsQuery.offset(offset);
+    }
+
+    const results = await resultsQuery;
 
     // Map snapshot fields to the expected interface format
     return results.map(row => ({

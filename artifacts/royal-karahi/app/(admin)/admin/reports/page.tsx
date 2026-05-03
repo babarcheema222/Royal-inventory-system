@@ -157,7 +157,15 @@ export default function Reports() {
                       type="date"
                       className="h-8 bg-muted/40 border-0 focus-visible:ring-1 font-bold text-[9px] rounded-lg px-1"
                       value={dateRange.from}
-                      onChange={(e) => setDateRange(prev => ({ ...prev, from: e.target.value }))}
+                      max={todayStr}
+                      onChange={(e) => {
+                        const selectedDate = e.target.value;
+                        if (selectedDate > todayStr) {
+                          setDateRange(prev => ({ ...prev, from: todayStr }));
+                        } else {
+                          setDateRange(prev => ({ ...prev, from: selectedDate }));
+                        }
+                      }}
                     />
                   </div>
                   <div className="flex-1 min-w-0 space-y-1">
