@@ -49,7 +49,7 @@ export default function Reports() {
       ? `ROYAL-STOCK-REPORT-TODAY-${format(new Date(), "yyyy-MM-dd")}.pdf`
       : `Report-from-${dateRange.from}-to-${dateRange.to}.pdf`;
 
-    const head = [["Time", "Item (Category > Subcategory)", "Type", "Quantity", "User", "Notes"]];
+    const head = [["Time", "Item (Category > Subcategory)", "Type", "Quantity", "Remaining", "User", "Notes"]];
 
     // Group transactions by date for the PDF
     const groupedByDate: Record<string, typeof transactions> = {};
@@ -78,6 +78,7 @@ export default function Reports() {
           `${tx.categoryName} > ${tx.subcategoryName}`,
           tx.type,
           `${tx.type === "IN" ? "+" : "-"}${tx.quantity} ${tx.unit}`,
+          tx.remainingStock !== null && tx.remainingStock !== undefined ? `${Number(tx.remainingStock).toFixed(2)} ${tx.unit}` : "-",
           tx.username,
           tx.notes || "-"
         ]);
@@ -176,7 +177,15 @@ export default function Reports() {
                       type="date"
                       className="h-8 bg-muted/40 border-0 focus-visible:ring-1 font-bold text-[9px] rounded-lg px-1"
                       value={dateRange.to}
-                      onChange={(e) => setDateRange(prev => ({ ...prev, to: e.target.value }))}
+                      max={todayStr}
+                      onChange={(e) => {
+                        const selectedDate = e.target.value;
+                        if (selectedDate > todayStr) {
+                          setDateRange(prev => ({ ...prev, to: todayStr }));
+                        } else {
+                          setDateRange(prev => ({ ...prev, to: selectedDate }));
+                        }
+                      }}
                     />
                   </div>
                 </div>
@@ -220,9 +229,10 @@ export default function Reports() {
                     <TableHead className="font-bold w-[12%] text-[11px] uppercase px-2">Time</TableHead>
                     <TableHead className="font-bold w-[30%] text-[11px] uppercase px-2">Item Name</TableHead>
                     <TableHead className="font-bold w-[8%] text-[11px] uppercase px-2">Type</TableHead>
-                    <TableHead className="text-right font-bold w-[15%] text-[11px] uppercase px-2">Qty</TableHead>
-                    <TableHead className="font-bold w-[15%] text-[11px] uppercase px-2">User</TableHead>
-                    <TableHead className="font-bold w-[20%] text-[11px] uppercase px-2">Notes</TableHead>
+                    <TableHead className="text-right font-bold w-[12%] text-[11px] uppercase px-2">Qty</TableHead>
+                    <TableHead className="text-right font-bold w-[12%] text-[11px] uppercase px-2">Remaining</TableHead>
+                    <TableHead className="font-bold w-[12%] text-[11px] uppercase px-2">User</TableHead>
+                    <TableHead className="font-bold w-[18%] text-[11px] uppercase px-2">Notes</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -247,6 +257,16 @@ export default function Reports() {
                           {tx.type === "IN" ? "+" : "-"}{tx.quantity}
                         </span>
                         <span className="text-[9px] ml-0.5 text-muted-foreground uppercase">{tx.unit}</span>
+                      </TableCell>
+                      <TableCell className="text-right font-mono font-black text-xs px-2">
+                        <span className="text-primary">
+                          {tx.remainingStock !== null && tx.remainingStock !== undefined 
+                            ? Number(tx.remainingStock).toFixed(2) 
+                            : "-"}
+                        </span>
+                        {tx.remainingStock !== null && tx.remainingStock !== undefined && (
+                          <span className="text-[9px] ml-0.5 text-muted-foreground uppercase">{tx.unit}</span>
+                        )}
                       </TableCell>
                       <TableCell className="text-[10px] font-black uppercase tracking-tighter text-muted-foreground px-2">{tx.username}</TableCell>
                       <TableCell className="text-[10px] text-muted-foreground print:text-black/70 font-bold leading-tight px-2 truncate max-w-[80px] sm:max-w-none">

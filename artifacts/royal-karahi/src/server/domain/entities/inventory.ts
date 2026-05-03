@@ -26,6 +26,7 @@ export interface Transaction {
   notes: string | null;
   isCleared: boolean;
   userId: number;
+  remainingStock: number | null;
   createdAt: Date;
 }
 

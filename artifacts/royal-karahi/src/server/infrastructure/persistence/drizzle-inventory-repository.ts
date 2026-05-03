@@ -150,6 +150,7 @@ export class DrizzleInventoryRepository implements IInventoryRepository {
         notes: schema.transactionsTable.notes,
         isCleared: schema.transactionsTable.isCleared,
         userId: schema.transactionsTable.userId,
+        remainingStock: schema.transactionsTable.remainingStock,
         createdAt: schema.transactionsTable.createdAt,
         username: schema.usersTable.username,
       })
@@ -175,6 +176,7 @@ export class DrizzleInventoryRepository implements IInventoryRepository {
     // Map snapshot fields to the expected interface format
     return results.map(row => ({
       ...row,
+      remainingStock: row.remainingStock,
       subcategoryName: row.subcategoryName,
       categoryName: row.categoryName,
       unit: row.unit
@@ -200,8 +202,8 @@ export class DrizzleInventoryRepository implements IInventoryRepository {
     // 1. Calculate the change as a positive or negative number
     const quantityChange = data.type === "IN" ? data.quantity : -data.quantity;
     
-    // 2. Update the stock level atomically
-    const updateResult = await this.db
+    // 2. Update the stock level atomically and get the new value
+    const [updatedSub] = await this.db
       .update(schema.subcategoriesTable)
       .set({ 
         currentStock: sql`ROUND((${schema.subcategoriesTable.currentStock} + ${quantityChange})::numeric, 2)::double precision` 
@@ -211,20 +213,22 @@ export class DrizzleInventoryRepository implements IInventoryRepository {
         data.type === "OUT" 
           ? gte(schema.subcategoriesTable.currentStock, data.quantity)
           : undefined
-      ));
+      ))
+      .returning();
 
-    if (updateResult.rowCount === 0 && data.type === "OUT") {
+    if (!updatedSub && data.type === "OUT") {
       throw new Error("Insufficient stock to complete this transaction.");
     }
 
-    // 3. Record the transaction with snapshots
+    // 3. Record the transaction with snapshots and the new stock balance
     const [transaction] = await this.db.insert(schema.transactionsTable).values({
       ...data,
-      itemName: itemData.subcategoryName, // Capture itemName as subcategory name
+      itemName: itemData.subcategoryName, 
       subcategoryName: itemData.subcategoryName,
       categoryName: itemData.categoryName,
       unit: itemData.unit,
       isCleared: false,
+      remainingStock: updatedSub?.currentStock ?? 0,
     }).returning();
 
     return transaction;

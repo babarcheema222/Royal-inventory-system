@@ -17,6 +17,7 @@ export const transactionsTable = pgTable("transactions", {
   isCleared: boolean("is_cleared").notNull().default(false),
   userId: integer("user_id").notNull().references(() => usersTable.id, { onDelete: "cascade" }),
   supplierId: integer("supplier_id"),
+  remainingStock: doublePrecision("remaining_stock"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 }, (table) => ({
   subcatIdx: index("tx_subcat_idx").on(table.subcategoryId),
