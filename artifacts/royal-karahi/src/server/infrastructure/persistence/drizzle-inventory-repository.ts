@@ -202,11 +202,13 @@ export class DrizzleInventoryRepository implements IInventoryRepository {
     // 1. Calculate the change as a positive or negative number
     const quantityChange = data.type === "IN" ? data.quantity : -data.quantity;
     
+    const precision = itemData.unit === "Kg" ? 3 : 2;
+
     // 2. Update the stock level atomically and get the new value
     const [updatedSub] = await this.db
       .update(schema.subcategoriesTable)
       .set({ 
-        currentStock: sql`ROUND((${schema.subcategoriesTable.currentStock} + ${quantityChange})::numeric, 3)::double precision` 
+        currentStock: sql`ROUND((${schema.subcategoriesTable.currentStock} + ${quantityChange})::numeric, ${sql.raw(precision.toString())})::double precision` 
       })
       .where(and(
         eq(schema.subcategoriesTable.id, data.subcategoryId),

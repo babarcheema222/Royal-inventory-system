@@ -78,7 +78,7 @@ export default function Reports() {
           `${tx.categoryName} > ${tx.subcategoryName}`,
           tx.type,
           `${tx.type === "IN" ? "+" : "-"}${tx.quantity} ${tx.unit}`,
-          tx.remainingStock !== null && tx.remainingStock !== undefined ? `${Number(tx.remainingStock).toFixed(3)} ${tx.unit}` : "-",
+          tx.remainingStock !== null && tx.remainingStock !== undefined ? `${Number(tx.remainingStock).toFixed(tx.unit === "Kg" ? 3 : 2)} ${tx.unit}` : "-",
           tx.username,
           tx.notes || "-"
         ]);
@@ -261,7 +261,7 @@ export default function Reports() {
                       <TableCell className="text-right font-mono font-black text-xs px-2">
                         <span className="text-primary">
                           {tx.remainingStock !== null && tx.remainingStock !== undefined 
-                            ? Number(tx.remainingStock).toFixed(3) 
+                            ? Number(tx.remainingStock).toFixed(tx.unit === "Kg" ? 3 : 2) 
                             : "-"}
                         </span>
                         {tx.remainingStock !== null && tx.remainingStock !== undefined && (

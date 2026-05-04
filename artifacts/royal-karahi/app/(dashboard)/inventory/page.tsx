@@ -76,7 +76,7 @@ export default function Inventory() {
     // Frontend validation to prevent negative stock
     const item = items?.find(i => i.id === txDialog.subcategoryId);
     if (txDialog.type === "OUT" && item && Number(quantity) > item.currentStock) {
-      toast.error(`Insufficient stock! Max available: ${item.currentStock.toFixed(3)} ${item.unit}`, { duration: 1500 });
+      toast.error(`Insufficient stock! Max available: ${item.currentStock.toFixed(item.unit === "Kg" ? 3 : 2)} ${item.unit}`, { duration: 1500 });
       return;
     }
 
@@ -113,7 +113,7 @@ export default function Inventory() {
     const body = lowStockItems.map(item => [
       item.categoryName,
       item.name,
-      Number(item.currentStock).toFixed(3),
+      Number(item.currentStock).toFixed(item.unit === "Kg" ? 3 : 2),
       item.unit,
       "LOW STOCK"
     ]);
@@ -241,7 +241,7 @@ export default function Inventory() {
                                   </div>
                                   <div className="flex flex-col items-end gap-1">
                                     <Badge variant={item.isLowStock ? "destructive" : "outline"} className="font-mono text-base px-2 py-0.5">
-                                      {Number(item.currentStock).toFixed(3)}
+                                      {Number(item.currentStock).toFixed(item.unit === "Kg" ? 3 : 2)}
                                     </Badge>
                                     <span className="text-[9px] text-muted-foreground font-bold uppercase tracking-tighter">Stock ({item.unit})</span>
                                   </div>
@@ -310,7 +310,7 @@ export default function Inventory() {
                 <Label htmlFor="quantity">Quantity ({txDialog?.unit})</Label>
                 {txDialog?.type === "OUT" && (
                   <div className="text-[10px] items-center flex gap-1 text-muted-foreground font-bold uppercase mb-1">
-                    <AlertCircle className="h-3 w-3" /> Max Available: {Number(items?.find(i => i.id === txDialog.subcategoryId)?.currentStock || 0).toFixed(3)} {txDialog.unit}
+                    <AlertCircle className="h-3 w-3" /> Max Available: {Number(items?.find(i => i.id === txDialog.subcategoryId)?.currentStock || 0).toFixed(txDialog.unit === "Kg" ? 3 : 2)} {txDialog.unit}
                   </div>
                 )}
                 <Input
@@ -319,8 +319,8 @@ export default function Inventory() {
                   type="number"
                   autoComplete="off"
                   min="0.001"
-                  step="0.001"
-                  placeholder="0.000"
+                  step="any"
+                  placeholder={txDialog?.unit === "Kg" ? "0.000" : "0.00"}
                   required
                   aria-required="true"
                   value={quantity}
@@ -435,7 +435,7 @@ export default function Inventory() {
                       </div>
                       <div className="text-right">
                         <div className="flex flex-col items-end">
-                          <span className="text-lg font-black text-destructive leading-none">{Number(item.currentStock).toFixed(3)}</span>
+                          <span className="text-lg font-black text-destructive leading-none">{Number(item.currentStock).toFixed(item.unit === "Kg" ? 3 : 2)}</span>
                           <span className="text-[10px] font-black uppercase text-muted-foreground leading-tight tracking-tighter">{item.unit} LEFT</span>
                         </div>
                       </div>
