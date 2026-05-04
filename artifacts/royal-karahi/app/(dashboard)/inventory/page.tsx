@@ -34,7 +34,26 @@ export default function Inventory() {
   });
 
   const [quantity, setQuantity] = useState("");
+  const [grams, setGrams] = useState("");
   const [notes, setNotes] = useState("");
+
+  const handleGramsChange = (val: string) => {
+    setGrams(val);
+    if (val && !isNaN(Number(val))) {
+      setQuantity((Number(val) / 1000).toFixed(3));
+    } else {
+      setQuantity("");
+    }
+  };
+
+  const handleKgChange = (val: string) => {
+    setQuantity(val);
+    if (val && !isNaN(Number(val))) {
+      setGrams((Number(val) * 1000).toString());
+    } else {
+      setGrams("");
+    }
+  };
   
   const createTxMutation = api.inventory.logTransaction.useMutation({
     onSuccess: () => {
@@ -42,6 +61,7 @@ export default function Inventory() {
       refetch();
       setTxDialog(null);
       setQuantity("");
+      setGrams("");
       setNotes("");
     },
     onError: (err) => {
@@ -56,7 +76,7 @@ export default function Inventory() {
     // Frontend validation to prevent negative stock
     const item = items?.find(i => i.id === txDialog.subcategoryId);
     if (txDialog.type === "OUT" && item && Number(quantity) > item.currentStock) {
-      toast.error(`Insufficient stock! Max available: ${item.currentStock.toFixed(2)} ${item.unit}`, { duration: 1500 });
+      toast.error(`Insufficient stock! Max available: ${item.currentStock.toFixed(3)} ${item.unit}`, { duration: 1500 });
       return;
     }
 
@@ -93,7 +113,7 @@ export default function Inventory() {
     const body = lowStockItems.map(item => [
       item.categoryName,
       item.name,
-      Number(item.currentStock).toFixed(2),
+      Number(item.currentStock).toFixed(3),
       item.unit,
       "LOW STOCK"
     ]);
@@ -221,7 +241,7 @@ export default function Inventory() {
                                   </div>
                                   <div className="flex flex-col items-end gap-1">
                                     <Badge variant={item.isLowStock ? "destructive" : "outline"} className="font-mono text-base px-2 py-0.5">
-                                      {Number(item.currentStock).toFixed(2)}
+                                      {Number(item.currentStock).toFixed(3)}
                                     </Badge>
                                     <span className="text-[9px] text-muted-foreground font-bold uppercase tracking-tighter">Stock ({item.unit})</span>
                                   </div>
@@ -290,7 +310,7 @@ export default function Inventory() {
                 <Label htmlFor="quantity">Quantity ({txDialog?.unit})</Label>
                 {txDialog?.type === "OUT" && (
                   <div className="text-[10px] items-center flex gap-1 text-muted-foreground font-bold uppercase mb-1">
-                    <AlertCircle className="h-3 w-3" /> Max Available: {Number(items?.find(i => i.id === txDialog.subcategoryId)?.currentStock || 0).toFixed(2)} {txDialog.unit}
+                    <AlertCircle className="h-3 w-3" /> Max Available: {Number(items?.find(i => i.id === txDialog.subcategoryId)?.currentStock || 0).toFixed(3)} {txDialog.unit}
                   </div>
                 )}
                 <Input
@@ -298,16 +318,41 @@ export default function Inventory() {
                   name="quantity"
                   type="number"
                   autoComplete="off"
-                  min="0.01"
-                  step="any"
-                  placeholder="0"
+                  min="0.001"
+                  step="0.001"
+                  placeholder="0.000"
                   required
                   aria-required="true"
                   value={quantity}
-                  onChange={(e) => setQuantity(e.target.value)}
+                  onChange={(e) => handleKgChange(e.target.value)}
                   autoFocus
                 />
               </div>
+
+              {txDialog?.unit === "Kg" && (
+                <div className="space-y-1">
+                  <Label htmlFor="grams" className="flex justify-between">
+                    <span>Grams (Helper)</span>
+                    <span className="text-[10px] text-primary lowercase font-normal italic">Auto-converts to Kg</span>
+                  </Label>
+                  <div className="relative">
+                    <Input
+                      id="grams"
+                      type="number"
+                      placeholder="e.g. 80"
+                      value={grams}
+                      onChange={(e) => handleGramsChange(e.target.value)}
+                      className="pr-12"
+                    />
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold text-muted-foreground uppercase">
+                      grams
+                    </div>
+                  </div>
+                  <p className="text-[10px] text-muted-foreground">
+                    Tip: 80g = 0.080 Kg | 5g = 0.005 Kg
+                  </p>
+                </div>
+              )}
               <div className="space-y-2">
                 <Label htmlFor="notes">Notes (Optional)</Label>
                 <Textarea
@@ -390,7 +435,7 @@ export default function Inventory() {
                       </div>
                       <div className="text-right">
                         <div className="flex flex-col items-end">
-                          <span className="text-lg font-black text-destructive leading-none">{Number(item.currentStock).toFixed(2)}</span>
+                          <span className="text-lg font-black text-destructive leading-none">{Number(item.currentStock).toFixed(3)}</span>
                           <span className="text-[10px] font-black uppercase text-muted-foreground leading-tight tracking-tighter">{item.unit} LEFT</span>
                         </div>
                       </div>

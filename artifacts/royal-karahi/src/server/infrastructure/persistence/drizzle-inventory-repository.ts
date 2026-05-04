@@ -206,7 +206,7 @@ export class DrizzleInventoryRepository implements IInventoryRepository {
     const [updatedSub] = await this.db
       .update(schema.subcategoriesTable)
       .set({ 
-        currentStock: sql`ROUND((${schema.subcategoriesTable.currentStock} + ${quantityChange})::numeric, 2)::double precision` 
+        currentStock: sql`ROUND((${schema.subcategoriesTable.currentStock} + ${quantityChange})::numeric, 3)::double precision` 
       })
       .where(and(
         eq(schema.subcategoriesTable.id, data.subcategoryId),

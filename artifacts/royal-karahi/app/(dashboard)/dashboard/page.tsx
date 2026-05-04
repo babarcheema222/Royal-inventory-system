@@ -91,7 +91,7 @@ export default function Dashboard() {
       items.forEach(item => {
         body.push([
           item.name,
-          `${Number(item.currentStock).toFixed(2)} ${item.unit}`
+          `${Number(item.currentStock).toFixed(3)} ${item.unit}`
         ]);
       });
     });
@@ -138,7 +138,7 @@ export default function Dashboard() {
     const body = lowStockItems.map(item => [
       item.name,
       item.categoryName,
-      `${Number(item.currentStock).toFixed(2)} ${item.unit}`
+      `${Number(item.currentStock).toFixed(3)} ${item.unit}`
     ]);
 
     generatePDF({
@@ -325,7 +325,7 @@ export default function Dashboard() {
                       <TableCell className="text-sm text-muted-foreground">{item.categoryName}</TableCell>
                       <TableCell className="text-right">
                         <Badge variant="destructive" className="font-mono">
-                          {Number(item.currentStock).toFixed(2)} {item.unit}
+                          {Number(item.currentStock).toFixed(3)} {item.unit}
                         </Badge>
                       </TableCell>
                     </TableRow>
@@ -394,7 +394,7 @@ export default function Dashboard() {
                             <TableCell className="font-semibold py-2">{item.name}</TableCell>
                             <TableCell className="text-right py-2">
                               <Badge variant={Number(item.currentStock) <= 10 ? "destructive" : "outline"} className="font-mono">
-                                {Number(item.currentStock).toFixed(2)} {item.unit}
+                                {Number(item.currentStock).toFixed(3)} {item.unit}
                               </Badge>
                             </TableCell>
                           </TableRow>
