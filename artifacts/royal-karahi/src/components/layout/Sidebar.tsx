@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
-import { LayoutDashboard, Package, ListTree, FileText, Users, LogOut, ChevronLeft, X, RefreshCw } from "lucide-react";
+import { LayoutDashboard, Package, ListTree, FileText, Users, LogOut, ChevronLeft, X, RefreshCw, ClipboardList } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth";
 
@@ -18,6 +18,7 @@ export function SidebarContent({ onClose }: SidebarContentProps) {
   const adminLinks = [
     { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { href: "/inventory", label: "Inventory", icon: Package },
+    { href: "/demand", label: "Demand", icon: ClipboardList },
     { href: "/admin/categories", label: "Categories", icon: ListTree },
     { href: "/admin/reports", label: "Reports", icon: FileText },
     ...(isAdmin ? [{ href: "/admin/users", label: "Users", icon: Users }] : []),
